@@ -25,7 +25,7 @@ export interface BuilderMainHtmlExtraction {
 }
 
 export class BuilderMainHtml {
-  public $: CheerioStatic
+  public $: cheerio.Root
 
   /** Plugin that needs to be passed to rollup */
   public readonly rollupPlugin: RollupPlugin

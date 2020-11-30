@@ -163,7 +163,7 @@ async function createRollupPlugins(
       modulesOptions: viteConfig.cssModuleOptions
     }),
 
-    createBuildAssetPlugin(paths.root, publicBasePath, viteConfig.assetsDir, viteConfig.assetsInlineLimit),
+    createBuildAssetPlugin(paths.root, resolver, publicBasePath, viteConfig.assetsDir, viteConfig.assetsInlineLimit),
     createBuildWasmPlugin(paths.root, publicBasePath, viteConfig.assetsDir, viteConfig.assetsInlineLimit),
     createEsbuildRenderChunkRollupPlugin(viteConfig.esbuildTarget || 'es2019', viteConfig.minify === 'esbuild')
   ]

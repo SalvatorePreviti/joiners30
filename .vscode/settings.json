@@ -16,7 +16,6 @@
   "editor.lineNumbers": "on",
   "editor.tabSize": 2,
   "eslint.codeActionsOnSave.mode": "all",
-  "eslint.enable": true,
   "eslint.format.enable": true,
   "eslint.lintTask.enable": true,
   "files.eol": "\n",

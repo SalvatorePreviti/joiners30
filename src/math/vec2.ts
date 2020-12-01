@@ -20,11 +20,9 @@ import {
   scalarEquals
 } from './scalar'
 
-export type Vec2 = { x: number; y: number }
+import type { Vec2, Vec2Out, Vec2In } from './math-types'
 
-export type Vec2Out = { x: number; y: number }
-
-export type Vec2In = { readonly x: number; readonly y: number }
+export { Vec2, Vec2Out, Vec2In }
 
 export const vec2New = (x: number, y: number): Vec2 => ({ x, y })
 

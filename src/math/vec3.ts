@@ -33,6 +33,10 @@ import {
   sin
 } from './scalar'
 
+import type { Vec3, Vec3Out, Vec3In } from './math-types'
+
+export { Vec3, Vec3Out, Vec3In }
+
 export const vec3New = (x: number, y: number, z: number): Vec3 => ({ x, y, z })
 
 export const vec3NewValue = (value: number = 0): Vec3 => ({ x: value, y: value, z: value })

@@ -5,13 +5,13 @@ import { MINIGAME, MINIGAME_ACTIVE } from './minigame'
 import { gameTimeDelta } from '../time'
 
 interface Animation {
-  _value: float
-  _speed: float
-  _initial: float
-  _max: float
-  _running: int
+  _value: number
+  _speed: number
+  _initial: number
+  _max: number
+  _running: number
   _onComplete?: Function
-  _rumble?: (animValue: float) => boolean //function that is passed the value and returns true/false whether it should be rumbling
+  _rumble?: (animValue: number) => boolean //function that is passed the value and returns true/false whether it should be rumbling
 }
 
 const ANIMATIONS = {

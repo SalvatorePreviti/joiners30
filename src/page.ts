@@ -133,7 +133,7 @@ headBobCheckbox.onchange = () => {
 }
 
 mouseSensitivitySlider.onchange = () => {
-  mouseSensitivity = mouseSensitivitySlider.value / 100
+  mouseSensitivity = parseInt(mouseSensitivitySlider.value) / 100
 }
 
 export const gl = canvasElement.getContext('webgl2', {

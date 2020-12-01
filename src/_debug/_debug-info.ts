@@ -1,5 +1,6 @@
 import './_debug.less'
 import debugInfoHtmlString from './_debug.html'
+import type { Vec2, Vec3 } from '../math/math-types'
 
 const unpackFloatBytes4 = (r: number, g: number, b: number, a: number): number => {
   return r / 255 + g / 65025 + b / 16581375 + a / 40948250625

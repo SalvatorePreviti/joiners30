@@ -27,14 +27,16 @@ import {
   vec3New,
   vec3NewValue,
   vec3Set,
-  vec3Temp1
+  vec3Temp1,
+  Vec3
 } from './math/vec3'
-import { vec2New } from './math/vec2'
+import { Vec2, vec2New } from './math/vec2'
 import { typedArraySet } from './core/arrays'
 import { RUMBLING } from './state/animations'
 import { MINIGAME, MINIGAME_LOADING, MINIGAME_ACTIVE, MINIGAME_COMPLETE } from './state/minigame'
 import { GAME_OBJECTS } from './state/objects'
 import { gameTimeDelta, gameTime } from './time'
+import type { Mat3 } from './math/math-types'
 
 const CAMERA_SPEED_DEFAULT = 2.1
 

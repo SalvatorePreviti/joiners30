@@ -1,4 +1,4 @@
-import { vec3New, vec3Distance, vec3Direction, vec3Temp0, vec3Dot, vec3Set } from '../math/vec3'
+import { vec3New, vec3Distance, vec3Direction, vec3Temp0, vec3Dot, vec3Set, Vec3 } from '../math/vec3'
 import { runAnimation, ANIMATIONS } from './animations'
 import { cameraPos, cameraDir, cameraEuler } from '../camera'
 import { setText } from '../text'
@@ -11,7 +11,7 @@ import { DEG_TO_RAD } from '../math/scalar'
 interface GameObject {
   _location: Vec3
   _visible?: boolean
-  _lookAtDistance: float
+  _lookAtDistance: number
   _onInteract: () => void //perform action when ACTION key is pressed while looking at
   _onLookAt: () => string | void //return a string to display, or perform action
 }

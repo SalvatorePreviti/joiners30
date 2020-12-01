@@ -11,9 +11,7 @@ import {
 } from './debug'
 import { cameraPos, cameraDir, cameraMat3, headBob } from './camera'
 
-import { GAME_OBJECTS } from './state/objects'
-import { ANIMATIONS } from './state/animations'
-import { sin, cos, min } from './math/scalar'
+import { sin, cos } from './math/scalar'
 import { vec3Normalize, vec3Temp0, vec3Set } from './math/vec3'
 import { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER } from './gl/gl-constants'
 import { gl } from './page'

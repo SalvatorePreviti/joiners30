@@ -189,34 +189,6 @@ float torus(vec3 p, vec2 t) {
 }
 
 //=== OPERATIONS ===
-// hg_sdf: http://mercury.sexy/hg_sdf/
-// splits world up with limits
-float pModInterval(float value, float size, float start, float stop) {
-  float halfsize = size * .5;
-  float c = floor((value + halfsize) / size);
-  float p = mod(value + halfsize, size) - halfsize;
-  return c > stop ? p + size * (c - stop) : c < start ? p + size * (c - start) : p;
-}
-
-// Repeat around the origin a number of times
-vec2 pModPolar2(vec2 xy, float repetitions) {
-  float halfAngle = PI / repetitions;
-  float a = mod(atan(xy.y, xy.x) + halfAngle, halfAngle * 2.) - halfAngle;
-  return vec2(cos(a), sin(a)) * length(xy);
-}
-
-// Repeat around the origin a number of times, also adding a rotation
-vec2 pModPolar2Rot(vec2 xy, float repetitions, float additionalRotation) {
-  float halfAngle = PI / repetitions;
-  float a = mod(atan(xy.y, xy.x) + halfAngle + additionalRotation, halfAngle * 2.) - halfAngle;
-  return vec2(cos(a), sin(a)) * length(xy);
-}
-
-float opOnion(float sdf, float thickness) {
-  return abs(sdf) - thickness;
-}
-
-#define ELONGATE(p, h) (p - clamp(p, -h, h))
 
 // Rotation by a dynamic angle
 mat2 rot(float a) {

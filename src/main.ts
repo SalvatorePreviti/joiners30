@@ -6,7 +6,7 @@ import { updateCamera, cameraPos } from './camera'
 import { buildHeightmapTexture } from './texture-heightmap'
 import { buildNoiseTexture } from './texture-noise'
 import { updateAnimations } from './state/animations'
-import { updateGameObjects, GAME_OBJECTS } from './state/objects'
+import { updateGameObjects, GAME_STATE } from './state/game-state'
 import { updateText } from './text'
 import { loadMainShader, mainShader, prerenderedShader } from './shader-program'
 import { updateCollider, initCollider } from './collider'
@@ -37,7 +37,7 @@ setTimeout(() => {
       updateCamera()
 
       if (!mainMenuVisible) {
-        if (!GAME_OBJECTS._submarine._gameEnded) {
+        if (!GAME_STATE._gameEnded) {
           updateCollider()
         }
         updateAnimations()

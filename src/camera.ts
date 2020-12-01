@@ -33,7 +33,7 @@ import {
 import { Vec2, vec2New } from './math/vec2'
 import { typedArraySet } from './core/arrays'
 import { RUMBLING } from './state/animations'
-import { GAME_OBJECTS } from './state/objects'
+import { GAME_STATE } from './state/game-state'
 import { gameTimeDelta, gameTime } from './time'
 import type { Mat3 } from './math/math-types'
 
@@ -70,17 +70,11 @@ export const cameraMoveDown = (amount: number) => {
 }
 
 const updateCameraDirFromEulerAngles = () => {
-  //vec3FromYawAndPitch(cameraDir, cameraEulerAngles)
   let { x: yaw, y: pitch } = cameraEuler
   if (RUMBLING) {
     yaw += sin(gameTime * 100) * 0.005
     pitch += sin(gameTime * 200) * 0.005
   }
-
-  // if (game is not started we should use) {
-  //   yaw = -170 * DEG_TO_RAD
-  //   pitch = 15 * DEG_TO_RAD
-  // }
 
   const sinYaw = sin(yaw)
   const cosYaw = cos(yaw)
@@ -90,7 +84,6 @@ const updateCameraDirFromEulerAngles = () => {
   vec3Normalize(vec3Set(cameraDir, sinYaw * cosPitch, -sinPitch, cosYaw * cosPitch))
 
   // Update rotation matrix
-
   typedArraySet(
     cameraMat3,
     cosYaw,
@@ -110,7 +103,7 @@ let timeMoving = 0
 export const updateCamera = () => {
   const speed = (PressedKeys[KEY_RUN] ? CAMERA_SPEED_RUN : CAMERA_SPEED_DEFAULT) * gameTimeDelta
 
-  if (!GAME_OBJECTS._submarine._gameEnded) {
+  if (!GAME_STATE._gameEnded) {
     vec3Set(vec3Temp0, 0, 0, 0)
     if (PressedKeys[KEY_FORWARD]) {
       movementForward(1)
@@ -150,7 +143,7 @@ updateCameraDirFromEulerAngles()
 debug_updateCameraPosition(cameraPos)
 
 onmousemove = (e) => {
-  if (document.pointerLockElement === canvasElement && !GAME_OBJECTS._submarine._gameEnded) {
+  if (document.pointerLockElement === canvasElement && !GAME_STATE._gameEnded) {
     cameraEuler.x = wrapAngleInRadians(cameraEuler.x - e.movementX * MOUSE_ROTATION_SENSITIVITY_X)
 
     cameraEuler.y = clamp(

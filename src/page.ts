@@ -4,7 +4,6 @@ import { KEY_MAIN_MENU, KeyFunctions } from './keyboard'
 import { vec3Set } from './math/vec3'
 import { vec2Set } from './math/vec2'
 import { cameraPos, cameraEuler } from './camera'
-import { playMusic, pauseMusic, setVolume } from './music'
 import { setText } from './text'
 import { debug_mode } from './debug'
 
@@ -33,6 +32,8 @@ export let mouseYInversion = 1
 
 export let headBobEnabled = true
 
+export let mouseSensitivity = 0.5
+
 /** The main element that holds the canvas and the main menu. */
 const mainElement = document.getElementById('M') as HTMLDivElement
 
@@ -40,7 +41,7 @@ const newGameButton = document.getElementById('R') as HTMLDivElement
 
 const highQualityCheckbox = document.getElementById('Q') as HTMLInputElement
 const invertYCheckbox = document.getElementById('Y') as HTMLInputElement
-const musicVolumeSlider = document.getElementById('V') as HTMLInputElement
+const mouseSensitivitySlider = document.getElementById('V') as HTMLInputElement
 const headBobCheckbox = document.getElementById('H') as HTMLInputElement
 
 export const saveGameButton = document.getElementById('S')
@@ -74,7 +75,6 @@ const handleResize = () => {
 }
 
 export const showMainMenu = () => {
-  pauseMusic()
   mainMenuVisible = true
   body.className = 'N'
   document.exitPointerLock()
@@ -108,7 +108,6 @@ export const startOrResumeClick = (newGame = true) => {
 
     gameStarted = true
   }
-  playMusic()
   mainMenuVisible = false
   body.className = ''
   canvasRequestPointerLock()
@@ -122,10 +121,20 @@ newGameButton.onclick = () => startOrResumeClick()
 KeyFunctions[KEY_MAIN_MENU] = showMainMenu
 
 canvasElement.onmousedown = canvasRequestPointerLock
+
 highQualityCheckbox.onchange = handleResize
-invertYCheckbox.onchange = () => (mouseYInversion = invertYCheckbox.checked ? -1 : 1)
-headBobCheckbox.onchange = () => (headBobEnabled = headBobCheckbox.checked)
-musicVolumeSlider.onchange = () => setVolume((musicVolumeSlider.value as any) / 100)
+
+invertYCheckbox.onchange = () => {
+  mouseYInversion = invertYCheckbox.checked ? -1 : 1
+}
+
+headBobCheckbox.onchange = () => {
+  headBobEnabled = headBobCheckbox.checked
+}
+
+mouseSensitivitySlider.onchange = () => {
+  mouseSensitivity = mouseSensitivitySlider.value / 100
+}
 
 export const gl = canvasElement.getContext('webgl2', {
   /** Boolean that indicates if the canvas contains an alpha buffer. */

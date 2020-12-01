@@ -15,7 +15,6 @@ import { buildScreenTextures, bindScreenTexture } from './texture-screen'
 import { initPrerenderedTexture, PRERENDERED_TEXTURE_SIZE } from './texture-prerendered'
 import { MINIGAME } from './state/minigame'
 import './save-load'
-import { loadMusic } from './music'
 import { GL_TRIANGLES, GL_FRAMEBUFFER } from './gl/gl-constants'
 import { updateTime, gameTime } from './time'
 
@@ -26,7 +25,6 @@ setTimeout(() => {
   initPrerenderedTexture()
   initCollider()
   loadMainShader()
-  loadMusic()
   showMainMenu()
 
   const animationFrame = debug_trycatch_wrap(

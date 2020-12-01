@@ -1,20 +1,20 @@
 {
-  "name": "js13k-2020",
+  "name": "joiners30",
   "version": "1.0.0",
   "private": true,
-  "description": "js13k-2020",
+  "description": "joiners30",
   "keywords": [
-    "js13k-2020"
+    "joiners30"
   ],
   "license": "MIT",
-  "author": "Salvatore Previti, Ben Clark",
-  "homepage": "https://github.com/SalvatorePreviti/js13k-2020#readme",
+  "author": "Salvatore Previti",
+  "homepage": "https://github.com/SalvatorePreviti/joiners30#readme",
   "bugs": {
-    "url": "https://github.com/SalvatorePreviti/js13k-2020/issues"
+    "url": "https://github.com/SalvatorePreviti/joiners30/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/SalvatorePreviti/js13k-2020.git"
+    "url": "git+https://github.com/SalvatorePreviti/joiners30.git"
   },
   "engines": {
     "node": ">=14.8.0"

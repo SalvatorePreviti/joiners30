@@ -98,7 +98,7 @@ export const startOrResumeClick = (newGame = true) => {
   if (!gameStarted) {
     saveGameButton.className = ''
     if (newGame) {
-      setText('Where am I? How did I get here?', 2)
+      setText('Find all the floppy disks!', 2)
     }
     //set camera pos
     newGameButton.innerText = 'Resume Game'

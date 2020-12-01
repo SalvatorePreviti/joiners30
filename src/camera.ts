@@ -15,8 +15,8 @@ import {
   debug_updateCameraDirection,
   debug_updateCameraEulerAngles
 } from './debug'
-import { canvasElement, mouseYInversion, headBobEnabled } from './page'
-import { cos, sin, wrapAngleInRadians, clamp, DEG_TO_RAD } from './math/scalar'
+import { canvasElement, mouseYInversion, headBobEnabled, mouseSensitivity } from './page'
+import { cos, sin, wrapAngleInRadians, clamp, DEG_TO_RAD, lerp } from './math/scalar'
 import {
   vec3Temp0,
   vec3Add,
@@ -40,9 +40,6 @@ import type { Mat3 } from './math/math-types'
 const CAMERA_SPEED_DEFAULT = 2.1
 
 const CAMERA_SPEED_RUN = debug_mode ? 20 : 5.5
-
-const MOUSE_ROTATION_SENSITIVITY_X = 0.001
-const MOUSE_ROTATION_SENSITIVITY_Y = MOUSE_ROTATION_SENSITIVITY_X
 
 /** Camera position */
 export const cameraPos: Vec3 = vec3New(103, 44, 9)
@@ -144,12 +141,9 @@ debug_updateCameraPosition(cameraPos)
 
 onmousemove = (e) => {
   if (document.pointerLockElement === canvasElement && !GAME_STATE._gameEnded) {
-    cameraEuler.x = wrapAngleInRadians(cameraEuler.x - e.movementX * MOUSE_ROTATION_SENSITIVITY_X)
+    const sens = lerp(0.0004, 0.0031, mouseSensitivity)
 
-    cameraEuler.y = clamp(
-      cameraEuler.y + e.movementY * mouseYInversion * MOUSE_ROTATION_SENSITIVITY_Y,
-      -87 * DEG_TO_RAD,
-      87 * DEG_TO_RAD
-    )
+    cameraEuler.x = wrapAngleInRadians(cameraEuler.x - e.movementX * sens)
+    cameraEuler.y = clamp(cameraEuler.y + e.movementY * mouseYInversion * sens, -87 * DEG_TO_RAD, 87 * DEG_TO_RAD)
   }
 }

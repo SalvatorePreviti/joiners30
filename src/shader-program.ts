@@ -16,6 +16,7 @@ import { vec3Normalize, vec3Temp0, vec3Set } from './math/vec3'
 import { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER } from './gl/gl-constants'
 import { gl } from './page'
 import { gameTime } from './time'
+import { GAME_OBJECTS } from './state/game-state'
 
 export const loadShaderFunction = (mainFunction: string) => {
   debug_time(`${loadShaderFunction.name} ${mainFunction}`)
@@ -69,6 +70,8 @@ export const loadShaderFunction = (mainFunction: string) => {
   const iP = gl.getUniformLocation(program, 'iP')
   const iD = gl.getUniformLocation(program, 'iD')
 
+  const iF0 = gl.getUniformLocation(program, 'iF0')
+
   ;[iNoise, iHeightmap, iPrerendered].map((t, i) => gl.uniform1i(t, i))
 
   const useShader = (width: number, height: number, isCollider?: boolean) => {
@@ -91,6 +94,8 @@ export const loadShaderFunction = (mainFunction: string) => {
 
     // Camera rotation matrix
     gl.uniformMatrix3fv(iCameraMat3, false, cameraMat3)
+
+    gl.uniform1i(iF0, (GAME_OBJECTS._floppy._visible && 0x01) | 0)
   }
 
   if (debug_mode) {

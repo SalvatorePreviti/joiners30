@@ -1,5 +1,5 @@
 import './css/styles.css'
-import { mainMenuVisible, renderHeight, renderWidth, gl, showMainMenu, glFrameBuffer } from './page'
+import { mainMenuVisible, renderHeight, renderWidth, gl, showMainMenu, glFrameBuffer, updateBio } from './page'
 import { debug_beginFrame, debug_endFrame, debug_trycatch_wrap, debug_log, debug_updateCameraPosition } from './debug'
 
 import { updateCamera, cameraPos } from './camera'
@@ -60,6 +60,8 @@ setTimeout(() => {
       mainShader(renderWidth, renderHeight)
 
       gl.drawArrays(GL_TRIANGLES, 0, 3)
+
+      updateBio()
 
       debug_endFrame(gameTime)
     },

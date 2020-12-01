@@ -1,4 +1,4 @@
-import { vec3Distance, vec3Direction, vec3Temp0, vec3Dot, Vec3 } from '../math/vec3'
+import { vec3Distance, vec3Direction, vec3Temp0, vec3Dot, Vec3, vec3New } from '../math/vec3'
 import { cameraPos, cameraDir } from '../camera'
 import { setText } from '../text'
 import { KEY_ACTION, PressedKeys } from '../keyboard'
@@ -8,21 +8,31 @@ interface GameObject {
   _location: Vec3
   _visible?: boolean
   _lookAtDistance: number
-  _onInteract: () => void //perform action when ACTION key is pressed while looking at
-  _onLookAt: () => string | void //return a string to display, or perform action
+  _onInteract?: () => void //perform action when ACTION key is pressed while looking at
+  _onLookAt?: () => string | void //return a string to display, or perform action
 }
 
-const INVENTORY = {
-  _key: false,
-  _antennaKey: false,
-  _floppy: false
+const GAME_OBJECTS = {
+  _floppy: {
+    _location: vec3New(-46.5, 1.01, -25),
+    _visible: true,
+    _lookAtDistance: 2,
+    _onLookAt: () => 'Pick up the floppy [press E or Space]',
+    _onInteract() {
+      this._visible = false
+      showBio()
+    }
+  }
 }
-
-const GAME_OBJECTS = {}
 
 const GAME_STATE = {
   _gameEnded: false,
+  _bioVisible: false,
   _objects: GAME_OBJECTS
+}
+
+function showBio() {
+  GAME_STATE._bioVisible = true
 }
 
 const GAME_OBJECTS_LIST: GameObject[] = objectValues(GAME_STATE._objects)
@@ -43,10 +53,10 @@ const getVisibleObject = (): GameObject => {
 
 const updateGameObjects = () => {
   const visibleObject = getVisibleObject()
-  setText((visibleObject && visibleObject._onLookAt()) || '')
-  if (visibleObject && PressedKeys[KEY_ACTION]) {
+  setText((visibleObject && visibleObject._onLookAt && visibleObject._onLookAt()) || '')
+  if (visibleObject && PressedKeys[KEY_ACTION] && visibleObject._onInteract) {
     visibleObject._onInteract()
   }
 }
 
-export { GAME_STATE, INVENTORY, updateGameObjects }
+export { GAME_STATE, GAME_OBJECTS, updateGameObjects }

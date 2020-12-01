@@ -1,3 +1,4 @@
+import { GAME_STATE } from './state/game-state'
 import { gameTextElement } from './page'
 import { gameTimeDelta } from './time'
 
@@ -48,9 +49,11 @@ const updateText = () => {
     currentText._timeout -= gameTimeDelta
   }
 
-  if (currentText._timeout < 0 && textQueue[0]) {
-    currentText = textQueue.pop()
-    gameTextElement.innerHTML = currentText._text
+  if (!GAME_STATE._bioVisible) {
+    if (currentText._timeout < 0 && textQueue[0]) {
+      currentText = textQueue.pop()
+      gameTextElement.innerHTML = currentText._text
+    }
   }
 }
 

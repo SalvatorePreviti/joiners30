@@ -4,6 +4,14 @@
   <style>*{
   user-select:none;
 }
+#bio{
+  position:absolute;
+  display:none;
+  background-color:rgba(0, 0, 0, 0.8);
+}
+body.bio #bio{
+  display:block;
+}
 html,
 body{
   margin:0;
@@ -98,11 +106,14 @@ a:hover{
   <body class="L">
     <div id="M">
       <canvas id="C"></canvas>
+      <div id="bio">
+        <div id="bioc"></div>
+      </div>
       <div id="T">
         <h1>Loading...</h1>
       </div>
       <div id="N">
-        <h1>ISLAND NOT FOUND</h1>
+        <h1>Find all the joiners!</h1>
         <h3><b id="R">New Game</b></h3>
         <h3><b id="S" class="X">Save Game</b></h3>
         <h3><b id="L">Load Game</b></h3>
@@ -110,18 +121,15 @@ a:hover{
           <label><input type="checkbox" id="Y"> Invert Y </label>
           <label> <input type="checkbox" id="Q" checked> High quality </label>
           <label> <input type="checkbox" id="H" checked> Head Bob </label><br>
-          <label>Mouse sensitivity <input type="range" id="V" value="50"></label>
+          <label>Mouse sensitivity <input type="range" id="V" value="28"></label>
           <br>
           <br>
           Shift: run<br>
-          W,A,S,D/Z,Q,S,D/Arrows: move<br>
+          W,A,S,D/Arrows: move, strafe<br>
           Mouse: look around<br>
           E,Space: interact<br>
           Esc,M: menu
         </small>
-        <a href="https://github.com/SalvatorePreviti/js13k-2020" target="_blank">
-          Copyright (c) 2020 Ben Clark, Salvatore Previti.
-        </a>
       </div>
     </div>
     
@@ -174,6 +182,7 @@ a:hover{
   } = Math;
   const TWO_PI = PI * 2;
   const DEG_TO_RAD = PI / 180;
+  const lerp = (from, to, t) => from + t * (to - from);
   const clamp = (value, minimum, maximum) => min(max(value, minimum), maximum);
   const wrapAngleInRadians = (angle) => angle - TWO_PI * floor((angle + PI) / TWO_PI);
   const scalarAdd = (a, b) => a + b;
@@ -355,20 +364,33 @@ a:hover{
     if (currentText && currentText._timeout > 0) {
       currentText._timeout -= gameTimeDelta;
     }
-    if (currentText._timeout < 0 && textQueue[0]) {
-      currentText = textQueue.pop();
-      gameTextElement.innerHTML = currentText._text;
+    if (!GAME_STATE._bioVisible) {
+      if (currentText._timeout < 0 && textQueue[0]) {
+        currentText = textQueue.pop();
+        gameTextElement.innerHTML = currentText._text;
+      }
     }
   };
-  const INVENTORY = {
-    _key: false,
-    _antennaKey: false,
-    _floppy: false
+  const GAME_OBJECTS = {
+    _floppy: {
+      _location: vec3New(-46.5, 1.01, -25),
+      _visible: true,
+      _lookAtDistance: 2,
+      _onLookAt: () => "Pick up the floppy [press E or Space]",
+      _onInteract() {
+        this._visible = false;
+        showBio();
+      }
+    }
   };
   const GAME_STATE = {
     _gameEnded: false,
-    _objects: {}
+    _bioVisible: false,
+    _objects: GAME_OBJECTS
   };
+  function showBio() {
+    GAME_STATE._bioVisible = true;
+  }
   const GAME_OBJECTS_LIST = objectValues(GAME_STATE._objects);
   const getVisibleObject = () => {
     for (const gameObject of GAME_OBJECTS_LIST) {
@@ -385,15 +407,13 @@ a:hover{
   };
   const updateGameObjects = () => {
     const visibleObject = getVisibleObject();
-    setText(visibleObject && visibleObject._onLookAt() || "");
-    if (visibleObject && PressedKeys[KEY_ACTION]) {
+    setText(visibleObject && visibleObject._onLookAt && visibleObject._onLookAt() || "");
+    if (visibleObject && PressedKeys[KEY_ACTION] && visibleObject._onInteract) {
       visibleObject._onInteract();
     }
   };
   const CAMERA_SPEED_DEFAULT = 2.1;
   const CAMERA_SPEED_RUN = 5.5;
-  const MOUSE_ROTATION_SENSITIVITY_X = 1e-3;
-  const MOUSE_ROTATION_SENSITIVITY_Y = MOUSE_ROTATION_SENSITIVITY_X;
   const cameraPos = vec3New(103, 44, 9);
   let headBob = 0;
   const cameraEuler = vec2New(-102 * DEG_TO_RAD, 23 * DEG_TO_RAD);
@@ -417,7 +437,7 @@ a:hover{
   let timeMoving = 0;
   const updateCamera = () => {
     const speed = (PressedKeys[KEY_RUN] ? CAMERA_SPEED_RUN : CAMERA_SPEED_DEFAULT) * gameTimeDelta;
-    if (!GAME_STATE._gameEnded) {
+    if (!GAME_STATE._gameEnded && !GAME_STATE._bioVisible) {
       vec3Set(vec3Temp0, 0, 0, 0);
       if (PressedKeys[KEY_FORWARD]) {
         movementForward(1);
@@ -442,10 +462,12 @@ a:hover{
   updateCameraDirFromEulerAngles();
   onmousemove = (e) => {
     if (document.pointerLockElement === canvasElement && !GAME_STATE._gameEnded) {
-      cameraEuler.x = wrapAngleInRadians(cameraEuler.x - e.movementX * MOUSE_ROTATION_SENSITIVITY_X);
-      cameraEuler.y = clamp(cameraEuler.y + e.movementY * mouseYInversion * MOUSE_ROTATION_SENSITIVITY_Y, -87 * DEG_TO_RAD, 87 * DEG_TO_RAD);
+      const sens = lerp(4e-4, 31e-4, mouseSensitivity);
+      cameraEuler.x = wrapAngleInRadians(cameraEuler.x - e.movementX * sens);
+      cameraEuler.y = clamp(cameraEuler.y + e.movementY * mouseYInversion * sens, -87 * DEG_TO_RAD, 87 * DEG_TO_RAD);
     }
   };
+  const bios_sp_html = '<ul>\n  <li>Bio html example</li>\n  <li>A bio goes here.</li>\n  <img src="./src/bios/sp.jpg">\n</ul>';
   const body = document.body;
   const canvasElement = document.getElementById("C");
   const gameTextElement = document.getElementById("T");
@@ -457,12 +479,15 @@ a:hover{
   let renderHeight;
   let mouseYInversion = 1;
   let headBobEnabled = true;
+  let mouseSensitivity = 0.5;
   const mainElement = document.getElementById("M");
   const newGameButton = document.getElementById("R");
   const highQualityCheckbox = document.getElementById("Q");
   const invertYCheckbox = document.getElementById("Y");
   const mouseSensitivitySlider = document.getElementById("V");
   const headBobCheckbox = document.getElementById("H");
+  const bioHtmlDiv = document.getElementById("bio");
+  const bioHtmlContentDiv = document.getElementById("bioc");
   const saveGameButton = document.getElementById("S");
   const loadGameButton = document.getElementById("L");
   const handleResize = () => {
@@ -476,6 +501,7 @@ a:hover{
     const whStyles = {width: cw | 0, height: ch | 0, fontSize: `${ch / 23 | 0}px`};
     objectAssign(mainElement.style, whStyles);
     objectAssign(canvasElement.style, whStyles);
+    objectAssign(bioHtmlDiv.style, whStyles);
     let {clientWidth: w, clientHeight: h} = mainElement;
     if (!highQualityCheckbox.checked) {
       w = w / 2 | 0;
@@ -488,7 +514,7 @@ a:hover{
   };
   const showMainMenu = () => {
     mainMenuVisible = true;
-    body.className = "N";
+    body.classList.add("N");
     document.exitPointerLock();
   };
   document.onpointerlockchange = () => {
@@ -504,7 +530,7 @@ a:hover{
     if (!gameStarted) {
       saveGameButton.className = "";
       if (newGame) {
-        setText("Where am I? How did I get here?", 2);
+        setText("Find all the floppy disks!", 2);
       }
       newGameButton.innerText = "Resume Game";
       vec3Set(cameraPos, -44, 4, 11);
@@ -512,14 +538,21 @@ a:hover{
       gameStarted = true;
     }
     mainMenuVisible = false;
-    body.className = "";
+    body.classList.remove("N");
     canvasRequestPointerLock();
   };
   handleResize();
   onresize = handleResize;
   newGameButton.onclick = () => startOrResumeClick();
   KeyFunctions[KEY_MAIN_MENU] = showMainMenu;
+  KeyFunctions[KEY_ACTION] = (repeat) => {
+    if (!repeat) {
+      GAME_STATE._bioVisible = false;
+    }
+  };
   canvasElement.onmousedown = canvasRequestPointerLock;
+  bioHtmlDiv.onmousedown = canvasRequestPointerLock;
+  gameTextElement.onmousedown = canvasRequestPointerLock;
   highQualityCheckbox.onchange = handleResize;
   invertYCheckbox.onchange = () => {
     mouseYInversion = invertYCheckbox.checked ? -1 : 1;
@@ -528,6 +561,7 @@ a:hover{
     headBobEnabled = headBobCheckbox.checked;
   };
   mouseSensitivitySlider.onchange = () => {
+    mouseSensitivity = parseInt(mouseSensitivitySlider.value) / 100;
   };
   const gl = canvasElement.getContext("webgl2", {
     alpha: false,
@@ -540,6 +574,20 @@ a:hover{
     stencil: false
   });
   const glFrameBuffer = gl.createFramebuffer();
+  let _bioHtmlVisible = null;
+  function updateBio() {
+    const bioVisible = !mainMenuVisible && GAME_STATE._bioVisible;
+    if (_bioHtmlVisible !== bioVisible) {
+      _bioHtmlVisible = bioVisible;
+      if (_bioHtmlVisible) {
+        body.classList.add("bio");
+        bioHtmlContentDiv.innerHTML = bios_sp_html;
+        gameTextElement.innerHTML = "[Press E or Space to continue]";
+      } else {
+        body.classList.remove("bio");
+      }
+    }
+  }
   const GL_TRIANGLES = 4;
   const GL_NICEST = 4354;
   const GL_GENERATE_MIPMAP_HINT = 33170;
@@ -570,7 +618,7 @@ a:hover{
     gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
   };
   const code = "#version 300 es\nprecision mediump int;uniform vec2 iR;out vec2 FC;void main(){vec2 a=vec2(float((gl_VertexID&1)<<2),float((gl_VertexID&2)<<1));gl_Position=vec4(a-1.,0.,1.);FC=a*iR*.5;}";
-  const code$1 = "#version 300 es\nprecision highp float;in vec2 FC;uniform vec2 iR;uniform vec3 iP;uniform vec4 iD;uniform vec4 iA;uniform vec4 iB;uniform vec4 iC;uniform vec4 iS;uniform vec4 iX;uniform mat3 iM;uniform lowp int iF;out vec4 oC;uniform highp sampler2D tN;uniform highp sampler2D tH;uniform highp sampler2D tP;float a;float b(float a){return clamp(a,0.,1.);}float c(float a,float b,float c){float d=max(c-abs(a-b),0.)/c;return min(a,b)-d*d*c/4.;}vec4 d(float a){vec4 c=b(a)*vec4(.999998,254.99948,65024.867,160581056);c=fract(c);c-=c.yzww*vec4(.003921569,.003921569,.003921569,0);return c;}float e(vec4 a){return dot(a,vec4(1,.003921569,1.53787e-5,6.2273724e-9));}vec3 f(vec2 a){vec4 b=texelFetch(tN,ivec2(floor(a))&511,0);float c=b.y-b.x,d=b.z-b.x,e=b.w-c-b.z;vec2 f=fract(a),g=f*f,h=g*(3.-2.*f);return vec3(b.x+c*h.x+d*h.y+e*h.x*h.y,30.*g*(f*(f-2.)+1.)*(vec2(c,d)+e*h.yx));}int g=0;float h=150.;void i(int b,float c){if(c<a&&c!=h){g=b;h=c;}}float j(vec3 a,vec3 b){vec3 c=abs(a)-b;return min(max(c.x,max(c.y,c.z)),0.)+length(max(c,0.));}mat2 k(float a){float b=cos(a),c=sin(a);return mat2(b,c,-c,b);}float l(vec3 a){vec3 b=abs(vec3(a.x,a.y+3.,a.z))-vec3(60,0,39);if(b.x<0.&&b.z<0.){float c=e(textureLod(tH,a.xz/vec2(120,78)+.5,0.)),d=1.-c;b.y-=c*19.+d*d*d;}return min(b.y,0.)+length(max(b,0.));}float m(vec3 a){float b=j(a-vec3(-1.5,1,5)-vec3(-46,-.5,-30),vec3(1,.2,3));i(0,b);return b;}int n=0;float o(vec3 b){float c=l(b);if(c>a){float a=m(b);if(c>=a){n=2;return a;}}n=1;return c;}vec3 p(vec3 a){return normalize(vec3(m(a+vec3(.001,0,0)),m(a+vec3(0,.001,0)),m(a+vec3(0,0,.001)))-m(a));}vec3 q(vec3 a,float b){vec2 c=vec2(mix(.03,.001,min(b/120.,1.)),0);return normalize(vec3(l(a+c.xyy),l(a+c.yxy),l(a+c.yyx))-l(a));}float r(vec3 b,vec3 c,float d,float e){float f=d;for(int g=0;;g++){vec3 h=b+c*e;a=d*max(e,1.);if(h.y<=-2.9995||e>=150.){float a=(-3.-b.y)/c.y;if(a>=0.&&a<500.){n=1;return a;}break;}if(h.y>45.)break;float i=o(h);if(i<0.){e-=f;i=f/2.;}e+=i;if(i<=a||g>=100)return e;f=i;}n=0;return 500.;}float s(vec3 b,float c,vec3 d,float e){float f=clamp(c*.005,.01,.1);b=b+d*f;float g=iS.w-a*2.;for(float h=1.;h<50.;h++){vec3 c=b+iS.xyz*f;if(f>=80.||c.y>45.||c.y<g||length(b)>=150.)break;float d=m(c),i=max(a,.01*min(1.,f)+h*2e-4);if(d<=i)return 0.;e=min(e,85.*d/f);if(e<.078)return 0.;f+=d+a;}return e;}float t(vec3 a,vec3 b){float c=(iS.w-a.y)/b.y;return min(c>=0.?c:500.,500.);}vec3 u(vec2 a){vec3 b=vec3(0);float c=0.,d=1.,e=0.,g=1.-length(iP.xz-a)/500.,h=5.*g*g;for(float i=0.;i<h;++i){a+=iD.w*.5;e*=-.75;vec3 g=f(a+sin(a.yx*.5+iD.w*.5)*.5);b+=g*d;a+=g.yz*.43;a*=2.;c+=d;d*=.75;}return b/c;}vec3 v(vec3 a,float c,vec3 d){float e=min(c/500.,1.),f=b(pow(e,3.5)+1.-exp(-c*.005)),g=max(dot(d,iS.xyz),0.);vec3 h=mix(vec3(.4,.8,1),vec3(1.065,.95,.85),pow(g,10.));return mix(a,h,f);}vec3 w(vec3 a,vec3 c){vec4 d=texelFetch(tP,ivec2(FC*256./iR),0);float e=uintBitsToFloat(uint(d.x*255.)<<24|uint(d.y*255.)<<16|uint(d.z*255.)<<8|uint(d.z*255.)),f=r(a,c,.001,e),h=t(a,c);vec3 i,j=vec3(0,1,0);float k=f;vec3 l=a+c*f;bool m=h<500.&&h<f;vec3 o;float w=0.;if(m){w=mix(.2,1.,b((f-h)/3.));vec3 d=a+c*h,e=mix(vec3(0),u(d.xz*(.7-iS.w*.02))*(1.-length(d)/450.),w);j=normalize(vec3(e.y,1.,e.x));h-=abs(e.z)*w*.6;k=h;o=mix(vec3(.25,.52,.73),vec3(.15,.62,.83),b(abs(e.z)-w));}int x=n,y=g;if(n==0)i=vec3(.4,.8,1);else{vec3 a;if(l.y<=-2.9995){a=vec3(0,1,0);i=vec3(1);}else{i=vec3(.8);switch(x){case 1:a=q(l,f);i=mix(vec3(.93,.8,.64),mix(vec3(.69+texture(tN,l.xz*1e-4).x,.67,.65),vec3(.38,.52,.23),dot(a,vec3(0,1,0))),b(l.y*.5-1.))+texture(tN,l.xz*.15).x*.1+texture(tN,l.xz*.01).y*.1;break;case 2:a=p(l);switch(y){case 1:i=vec3(1);break;case 2:i=vec3(1,0,0);break;case 3:i=vec3(.5,0,0);break;case 4:i=vec3(.2,.1,.2);break;case 5:i=vec3(1,.95,.8);break;case-1:i=vec3(.64000005,.48000002,.32000002);break;default:vec4 b=texture(tN,l.xy*.35)*a.z+texture(tN,l.yz*.35)*a.x+texture(tN,l.xz*.35)*a.y-.5;i+=.125*(b.x-b.y+b.z-b.w);break;}}j=normalize(mix(a,j,w));}}float z=m||x==2&&y>0?pow(b(dot(iS.xyz,reflect(c,j))),50.):0.,A=b(dot(iS.xyz,j)),B=b(dot(iS.xyz*vec3(-1,1,-1),j)),C=A+B*.15;if(x==1)C=pow(C*mix(.9,1.02,A*A),1.+A*.6);C=mix(C,A,w);float D=1.;if(n!=0)D=s(a+c*k,k,j,1.);i=mix(i,o,w);i=(i*vec3(1.065,.95,.85)*C+z)*mix(.38+(1.-C)*.2,1.,D);return v(i,k,c);}void main_c(){vec3 a=vec3(0,0,1);a.xz*=k(FC.x*.049087387+3.1415927);oC=d(.2-o(vec3(iP.x,iP.y+(FC.y/64.-1.)-.8,iP.z)+normalize(a)*.15));}void main_p(){vec2 b=FC/128.-1.+.001953125;vec3 c=normalize(iM*vec3(b.x*-1.5,b.y,2.4142134));float d=r(iP,c,.0046875,.15);uint e=floatBitsToUint(d>=150.?150.:d-a);oC=vec4(float(e>>24&255u)/255.,float(e>>16&255u)/255.,float(e>>8&255u)/255.,float(e&255u)/255.);}void main_m(){vec2 a=FC/(iR*.5)-1.;vec3 b=normalize(iM*vec3(a.x*-1.5,a.y,2.4142134));oC=vec4(w(iP,b),1);}float x(vec2 a,float c,float d,float e,float f){vec2 g=a-vec2(c,d);return b(1.-smoothstep(e-e*f,e,dot(g,g)*4.));}void main_h(){vec2 a=FC/(iR*.5)-1.,e=vec2(1.3,1),g=vec2(0);float h=0.,i=1.,j=1.,l=0.,m=1.;while(m<11.){vec3 b=f(21.1+a*e*k(m++*2.5));g+=b.yz;h+=j*(1.-b.x)/(1.+dot(g,g));i+=j*(.5-b.x);l+=j;j*=.5;e*=1.8;}h/=l;i*=.5;float n=length(a*(1.2-i+h))*b(i+.56-.5*h*a.x*(1.-a.y*.5)),o=x(a,-.45,-.52,1.,2.3)+x(a,-.6,-.1,1.,3.3)+x(a,.5,-.7,1.,5.)+x(a,.6,.53,h*2.,i*5.);n=b(1.-c(n,1.-mix(0.,h*2.,o),.05+i*.5));vec2 p=1.-abs(a)+h*.04;n=c(n,c(p.x,p.y,.3)*2.,.1);oC=d(c(h,n,.01)*1.33-.045);}";
+  const code$1 = "#version 300 es\nprecision highp float;in vec2 FC;uniform vec2 iR;uniform vec3 iP;uniform vec4 iD;uniform vec4 iS;uniform mat3 iM;uniform lowp int iF0;out vec4 oC;uniform highp sampler2D tN;uniform highp sampler2D tH;uniform highp sampler2D tP;float a;float b(float a){return clamp(a,0.,1.);}float c(float a,float b,float c){float d=max(c-abs(a-b),0.)/c;return min(a,b)-d*d*c/4.;}vec4 d(float a){vec4 c=b(a)*vec4(.999998,254.99948,65024.867,160581056);c=fract(c);c-=c.yzww*vec4(.003921569,.003921569,.003921569,0);return c;}float e(vec4 a){return dot(a,vec4(1,.003921569,1.53787e-5,6.2273724e-9));}vec3 f(vec2 a){vec4 b=texelFetch(tN,ivec2(floor(a))&511,0);float c=b.y-b.x,d=b.z-b.x,e=b.w-c-b.z;vec2 f=fract(a),g=f*f,h=g*(3.-2.*f);return vec3(b.x+c*h.x+d*h.y+e*h.x*h.y,30.*g*(f*(f-2.)+1.)*(vec2(c,d)+e*h.yx));}int g=0;float h=150.;void i(int b,float c){if(c<a&&c!=h){g=b;h=c;}}float j(vec3 a,vec3 b){vec3 c=abs(a)-b;return min(max(c.x,max(c.y,c.z)),0.)+length(max(c,0.));}mat2 k(float a){float b=cos(a),c=sin(a);return mat2(b,c,-c,b);}float l(vec3 a){float b=j(a-vec3(.056,0,0),vec3(.035,.006,.05)),c=j(a,vec3(.09,.005,.0937));if(c<b){i(2,c);return c;}i(1,b);return b;}float m(vec3 a){vec3 b=abs(vec3(a.x,a.y+3.,a.z))-vec3(60,0,39);if(b.x<0.&&b.z<0.){float c=e(textureLod(tH,a.xz/vec2(120,78)+.5,0.)),d=1.-c;b.y-=c*19.+d*d*d;}return min(b.y,0.)+length(max(b,0.));}float n(vec3 a){float b=j(a-vec3(-47,.5,-26),vec3(1,.5,3)),c=150.;if((iF0&1)!=0)c=min(c,l(a-vec3(-46.5,1.01,-25)));float d=b;if(c<d)return c;i(0,d);return d;}int o=0;float p(vec3 b){float c=m(b);if(c>a){float a=n(b);if(c>=a){o=2;return a;}}o=1;return c;}vec3 q(vec3 a){return normalize(vec3(n(a+vec3(.001,0,0)),n(a+vec3(0,.001,0)),n(a+vec3(0,0,.001)))-n(a));}vec3 r(vec3 a,float b){vec2 c=vec2(mix(.03,.001,min(b/120.,1.)),0);return normalize(vec3(m(a+c.xyy),m(a+c.yxy),m(a+c.yyx))-m(a));}float s(vec3 b,vec3 c,float d,float e){float f=d;for(int g=0;;g++){vec3 h=b+c*e;a=d*max(e,1.);if(h.y<=-2.9995||e>=150.){float a=(-3.-b.y)/c.y;if(a>=0.&&a<500.){o=1;return a;}break;}if(h.y>45.)break;float i=p(h);if(i<0.){e-=f;i=f/2.;}e+=i;if(i<=a||g>=100)return e;f=i;}o=0;return 500.;}float t(vec3 b,float c,vec3 d,float e){float f=clamp(c*.005,.01,.1);b=b+d*f;float g=iS.w-a*2.;for(float h=1.;h<50.;h++){vec3 c=b+iS.xyz*f;if(f>=80.||c.y>45.||c.y<g||length(b)>=150.)break;float d=n(c),i=max(a,.01*min(1.,f)+h*2e-4);if(d<=i)return 0.;e=min(e,85.*d/f);if(e<.078)return 0.;f+=d+a;}return e;}float u(vec3 a,vec3 b){float c=(iS.w-a.y)/b.y;return min(c>=0.?c:500.,500.);}vec3 v(vec2 a){vec3 b=vec3(0);float c=0.,d=1.,e=0.,g=1.-length(iP.xz-a)/500.,h=5.*g*g;for(float i=0.;i<h;++i){a+=iD.w*.5;e*=-.75;vec3 g=f(a+sin(a.yx*.5+iD.w*.5)*.5);b+=g*d;a+=g.yz*.43;a*=2.;c+=d;d*=.75;}return b/c;}vec3 w(vec3 a,float c,vec3 d){float e=min(c/500.,1.),f=b(pow(e,3.5)+1.-exp(-c*.005)),g=max(dot(d,iS.xyz),0.);vec3 h=mix(vec3(.4,.8,1),vec3(1.065,.95,.85),pow(g,10.));return mix(a,h,f);}vec3 x(vec3 a,vec3 c){vec4 d=texelFetch(tP,ivec2(FC*256./iR),0);float e=uintBitsToFloat(uint(d.x*255.)<<24|uint(d.y*255.)<<16|uint(d.z*255.)<<8|uint(d.z*255.)),f=s(a,c,.001,e),h=u(a,c);vec3 i,j=vec3(0,1,0);float k=f;vec3 l=a+c*f;bool m=h<500.&&h<f;vec3 n;float p=0.;if(m){p=mix(.2,1.,b((f-h)/3.));vec3 d=a+c*h,e=mix(vec3(0),v(d.xz*(.7-iS.w*.02))*(1.-length(d)/450.),p);j=normalize(vec3(e.y,1.,e.x));h-=abs(e.z)*p*.6;k=h;n=mix(vec3(.25,.52,.73),vec3(.15,.62,.83),b(abs(e.z)-p));}int x=o,y=g;if(o==0)i=vec3(.4,.8,1);else{vec3 a;if(l.y<=-2.9995){a=vec3(0,1,0);i=vec3(1);}else{i=vec3(.8);switch(x){case 1:a=r(l,f);i=mix(vec3(.93,.8,.64),mix(vec3(.69+texture(tN,l.xz*1e-4).x,.67,.65),vec3(.38,.52,.23),dot(a,vec3(0,1,0))),b(l.y*.5-1.))+texture(tN,l.xz*.15).x*.1+texture(tN,l.xz*.01).y*.1;break;case 2:a=q(l);switch(y){case 1:i=vec3(1);break;case 2:i=vec3(1,0,0);break;case 3:i=vec3(.5,0,0);break;case 4:i=vec3(.2,.1,.2);break;case 5:i=vec3(1,.95,.8);break;case-1:i=vec3(.64000005,.48000002,.32000002);break;default:vec4 b=texture(tN,l.xy*.35)*a.z+texture(tN,l.yz*.35)*a.x+texture(tN,l.xz*.35)*a.y-.5;i+=.125*(b.x-b.y+b.z-b.w);break;}}j=normalize(mix(a,j,p));}}float z=m||x==2&&y>0?pow(b(dot(iS.xyz,reflect(c,j))),50.):0.,A=b(dot(iS.xyz,j)),B=b(dot(iS.xyz*vec3(-1,1,-1),j)),C=A+B*.15;if(x==1)C=pow(C*mix(.9,1.02,A*A),1.+A*.6);C=mix(C,A,p);float D=1.;if(o!=0)D=t(a+c*k,k,j,1.);i=mix(i,n,p);i=(i*vec3(1.065,.95,.85)*C+z)*mix(.38+(1.-C)*.2,1.,D);return w(i,k,c);}void main_c(){vec3 a=vec3(0,0,1);a.xz*=k(FC.x*.049087387+3.1415927);oC=d(.2-p(vec3(iP.x,iP.y+(FC.y/64.-1.)-.8,iP.z)+normalize(a)*.15));}void main_p(){vec2 b=FC/128.-1.+.001953125;vec3 c=normalize(iM*vec3(b.x*-1.5,b.y,2.4142134));float d=s(iP,c,.0046875,.15);uint e=floatBitsToUint(d>=150.?150.:d-a);oC=vec4(float(e>>24&255u)/255.,float(e>>16&255u)/255.,float(e>>8&255u)/255.,float(e&255u)/255.);}void main_m(){vec2 a=FC/(iR*.5)-1.;vec3 b=normalize(iM*vec3(a.x*-1.5,a.y,2.4142134));oC=vec4(x(iP,b),1);}float y(vec2 a,float c,float d,float e,float f){vec2 g=a-vec2(c,d);return b(1.-smoothstep(e-e*f,e,dot(g,g)*4.));}void main_h(){vec2 a=FC/(iR*.5)-1.,e=vec2(1.3,1),g=vec2(0);float h=0.,i=1.,j=1.,l=0.,m=1.;while(m<11.){vec3 b=f(21.1+a*e*k(m++*2.5));g+=b.yz;h+=j*(1.-b.x)/(1.+dot(g,g));i+=j*(.5-b.x);l+=j;j*=.5;e*=1.8;}h/=l;i*=.5;float n=length(a*(1.2-i+h))*b(i+.56-.5*h*a.x*(1.-a.y*.5)),o=y(a,-.45,-.52,1.,2.3)+y(a,-.6,-.1,1.,3.3)+y(a,.5,-.7,1.,5.)+y(a,.6,.53,h*2.,i*5.);n=b(1.-c(n,1.-mix(0.,h*2.,o),.05+i*.5));vec2 p=1.-abs(a)+h*.04;n=c(n,c(p.x,p.y,.3)*2.,.1);oC=d(c(h,n,.01)*1.33-.045);}";
   const loadShaderFunction = (mainFunction) => {
     const program = gl.createProgram();
     const loadShaderCode = (type, sourceCode) => {
@@ -592,6 +640,7 @@ a:hover{
     const iSunDirection = gl.getUniformLocation(program, "iS");
     const iP = gl.getUniformLocation(program, "iP");
     const iD = gl.getUniformLocation(program, "iD");
+    const iF0 = gl.getUniformLocation(program, "iF0");
     [iNoise, iHeightmap, iPrerendered].map((t, i) => gl.uniform1i(t, i));
     const useShader = (width, height, isCollider) => {
       gl.viewport(0, 0, width, height);
@@ -603,6 +652,7 @@ a:hover{
       gl.uniform3f(iP, cameraPos.x, cameraPos.y + (isCollider ? 0 : headBob), cameraPos.z);
       gl.uniform4f(iD, cameraDir.x, cameraDir.y, cameraDir.z, gameTime);
       gl.uniformMatrix3fv(iCameraMat3, false, cameraMat3);
+      gl.uniform1i(iF0, (GAME_OBJECTS._floppy._visible && 1) | 0);
     };
     return useShader;
   };
@@ -736,7 +786,7 @@ a:hover{
     gl.framebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, prerenderedTexture, 0);
     gl.bindFramebuffer(GL_FRAMEBUFFER, null);
   };
-  const data = [GAME_STATE, INVENTORY, ANIMATIONS, cameraPos, cameraEuler];
+  const data = [GAME_STATE, ANIMATIONS, cameraPos, cameraEuler];
   function deepMerge(original, item) {
     for (const key in item) {
       if (typeof item[key] === "object") {
@@ -795,6 +845,7 @@ a:hover{
       gl.bindFramebuffer(GL_FRAMEBUFFER, null);
       mainShader(renderWidth, renderHeight);
       gl.drawArrays(GL_TRIANGLES, 0, 3);
+      updateBio();
     });
     requestAnimationFrame(animationFrame);
   }, 99);

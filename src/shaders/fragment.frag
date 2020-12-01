@@ -40,13 +40,9 @@ in vec2 FC;
 uniform vec2 iR;
 uniform vec3 iP;
 uniform vec4 iD;
-uniform vec4 iA;
-uniform vec4 iB;
-uniform vec4 iC;
 uniform vec4 iS;
-uniform vec4 iX;
 uniform mat3 iM;
-uniform lowp int iF;
+uniform lowp int iF0;
 
 ///// I/O /////
 
@@ -93,6 +89,11 @@ uniform highp sampler2D iHeightmap;
 // Prerendered texture
 #define iPrerendered tP
 uniform highp sampler2D iPrerendered;
+
+///// Game object uniforms /////
+
+// Flashlight on
+#define iFloppyVisible ((iF0 & 0x01) != 0)
 
 //=== STATE ===
 
@@ -196,10 +197,15 @@ mat2 rot(float a) {
   return mat2(c, s, -s, c);
 }
 
-float gameObjectFloppy(vec3 p) {
-  float clip = cuboid(p - vec3(.03, 0, 0), vec3(.03, .006, .03));
+float objectFloppy(vec3 p) {
+  float clip = cuboid(p - vec3(.056, 0, 0), vec3(.035, .006, .05));
+  float body = cuboid(p, vec3(.09, .005, .0937));
+  if (body < clip) { 
+    updateSubMaterial(SUBMATERIAL_BRIGHT_RED, body);
+    return body;
+  }
   updateSubMaterial(SUBMATERIAL_METAL, clip);
-  return min(cuboid(p, vec3(.06, .005, .06)), clip);
+  return clip;
 }
 
 float terrain(vec3 p) {
@@ -213,13 +219,18 @@ float terrain(vec3 p) {
 }
 
 float nonTerrain(vec3 p) {
-  float structures = 
-   cuboid(p-vec3(-1.5,1,5)- vec3(-46, -.5, -30), vec3(1,.2,3));
+  float plank = cuboid(p - vec3(-47, .5, -26), vec3(1,.5,3));
+  float objects = MAX_DIST;
+  
+  if (iFloppyVisible) {
+    objects = min(objects, objectFloppy(p - vec3(-46.5, 1.01, -25)));
+  }
 
-  //if (aoc < structures) {
-  //  updateSubMaterial(SUBMATERIAL_METAL, aoc);
-  //  return aoc;
-  //}
+  float structures = plank;
+
+  if (objects < structures) {
+    return objects;
+  }
 
   updateSubMaterial(SUBMATERIAL_CONCRETE, structures);
   return structures;

@@ -100,7 +100,7 @@ let timeMoving = 0
 export const updateCamera = () => {
   const speed = (PressedKeys[KEY_RUN] ? CAMERA_SPEED_RUN : CAMERA_SPEED_DEFAULT) * gameTimeDelta
 
-  if (!GAME_STATE._gameEnded && !GAME_STATE._bioVisible) {
+  if (!GAME_STATE._gameEnded && GAME_STATE._bioVisible < 0) {
     vec3Set(vec3Temp0, 0, 0, 0)
     if (PressedKeys[KEY_FORWARD]) {
       movementForward(1)

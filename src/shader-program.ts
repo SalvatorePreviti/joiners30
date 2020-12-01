@@ -16,7 +16,7 @@ import { vec3Normalize, vec3Temp0, vec3Set } from './math/vec3'
 import { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER } from './gl/gl-constants'
 import { gl } from './page'
 import { gameTime } from './time'
-import { GAME_OBJECTS } from './state/game-state'
+import { GAME_STATE } from './state/game-state'
 
 export const loadShaderFunction = (mainFunction: string) => {
   debug_time(`${loadShaderFunction.name} ${mainFunction}`)
@@ -95,7 +95,13 @@ export const loadShaderFunction = (mainFunction: string) => {
     // Camera rotation matrix
     gl.uniformMatrix3fv(iCameraMat3, false, cameraMat3)
 
-    gl.uniform1i(iF0, (GAME_OBJECTS._floppy._visible && 0x01) | 0)
+    let floppiesMask = 0
+    const floppies = GAME_STATE._floppies
+    for (let i = 0; i < floppies.length; ++i) {
+      floppiesMask |= floppies[i]._visible ? 1 << i : 0
+    }
+
+    gl.uniform1i(iF0, floppiesMask)
   }
 
   if (debug_mode) {

@@ -42,7 +42,7 @@ uniform vec3 iP;
 uniform vec4 iD;
 uniform vec4 iS;
 uniform mat3 iM;
-uniform lowp int iF0;
+uniform mediump int iF0;
 
 ///// I/O /////
 
@@ -93,7 +93,7 @@ uniform highp sampler2D iPrerendered;
 ///// Game object uniforms /////
 
 // Flashlight on
-#define iFloppyVisible ((iF0 & 0x01) != 0)
+#define iFloppyVisible ((iF0 & 0x0001) != 0)
 
 //=== STATE ===
 

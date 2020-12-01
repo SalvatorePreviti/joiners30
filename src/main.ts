@@ -37,7 +37,7 @@ setTimeout(() => {
       updateCamera()
 
       if (!mainMenuVisible) {
-        if (!GAME_STATE._gameEnded) {
+        if (!GAME_STATE._gameEnded && !GAME_STATE._bioVisible) {
           updateCollider()
         }
         updateAnimations()

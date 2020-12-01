@@ -4,11 +4,18 @@
 
 #bio {
   position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
   display: none;
-  background-color: rgba(0, 0, 0, 0.8);
+  background-color: rgba(0, 0, 0, 0.9);
+  pointer-events: none;
+  overflow: scroll;
+  padding: 18px;
 }
 
-body.bio #bio {
+.bio #bio {
   display: block;
 }
 
@@ -99,7 +106,18 @@ label {
   }
 }
 
-.N #T {
+#found-text {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+.N #T,
+.N #bio,
+.N #found-text,
+.bio #found-text,
+.bio #T {
   display: none;
 }
 

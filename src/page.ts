@@ -16,6 +16,8 @@ export const canvasElement = document.getElementById('C') as HTMLCanvasElement
 
 export const gameTextElement = document.getElementById('T') as HTMLDivElement
 
+export const foundTextElement = document.getElementById('found-text') as HTMLDivElement
+
 /** Total horizontal and vertical padding to apply to the main element */
 const MAIN_ELEMENT_PADDING = 30
 
@@ -23,7 +25,7 @@ const MAIN_ELEMENT_PADDING = 30
 const MAIN_ELEMENT_ASPECT_RATIO = 1.5
 
 /** The maximum width of the main element, and the canvas. */
-const MAIN_ELEMENT_MAX_WIDTH = 1200
+const MAIN_ELEMENT_MAX_WIDTH = 2000
 
 export let mainMenuVisible: boolean
 
@@ -46,7 +48,6 @@ const highQualityCheckbox = document.getElementById('Q') as HTMLInputElement
 const invertYCheckbox = document.getElementById('Y') as HTMLInputElement
 const mouseSensitivitySlider = document.getElementById('V') as HTMLInputElement
 const headBobCheckbox = document.getElementById('H') as HTMLInputElement
-const bioHtmlDiv = document.getElementById('bio') as HTMLDivElement
 const bioHtmlContentDiv = document.getElementById('bioc') as HTMLDivElement
 
 export const saveGameButton = document.getElementById('S')
@@ -66,7 +67,6 @@ const handleResize = () => {
   const whStyles = { width: cw | 0, height: ch | 0, fontSize: `${(ch / 23) | 0}px` }
   objectAssign(mainElement.style, whStyles)
   objectAssign(canvasElement.style, whStyles)
-  objectAssign(bioHtmlDiv.style, whStyles)
 
   let { clientWidth: w, clientHeight: h } = mainElement
   if (!highQualityCheckbox.checked) {
@@ -104,6 +104,7 @@ export const startOrResumeClick = (newGame = true) => {
   if (!gameStarted) {
     saveGameButton.className = ''
     if (newGame) {
+      resetHtmlState()
       setText('Find all the floppy disks!', 2)
     }
     //set camera pos
@@ -127,12 +128,11 @@ newGameButton.onclick = () => startOrResumeClick()
 KeyFunctions[KEY_MAIN_MENU] = showMainMenu
 KeyFunctions[KEY_ACTION] = (repeat: boolean) => {
   if (!repeat) {
-    GAME_STATE._bioVisible = false
+    GAME_STATE._bioVisible = -1
   }
 }
 
 canvasElement.onmousedown = canvasRequestPointerLock
-bioHtmlDiv.onmousedown = canvasRequestPointerLock
 gameTextElement.onmousedown = canvasRequestPointerLock
 
 highQualityCheckbox.onchange = handleResize
@@ -171,16 +171,31 @@ export const gl = canvasElement.getContext('webgl2', {
 /** Main framebuffer used for pregenerating the heightmap and to render the collision shader */
 export const glFrameBuffer: WebGLFramebuffer = gl.createFramebuffer()
 
-let _bioHtmlVisible = null
+export let bioHtmlVisible: boolean | null = null
+
+let _foundHtmlCount: number = -2
+
+export function resetHtmlState() {
+  bioHtmlVisible = null
+  _foundHtmlCount = -2
+}
 
 export function updateBio() {
-  const bioVisible = !mainMenuVisible && GAME_STATE._bioVisible
-  if (_bioHtmlVisible !== bioVisible) {
-    _bioHtmlVisible = bioVisible
-    if (_bioHtmlVisible) {
+  if (_foundHtmlCount !== GAME_STATE._foundCount) {
+    const floppiesCount = GAME_STATE._floppies.length
+    _foundHtmlCount = GAME_STATE._foundCount
+    if (_foundHtmlCount >= floppiesCount) {
+      foundTextElement.innerHTML = '<br/><h1>Congratulations!<br/>You found all the joiners!</h1>'
+    } else {
+      foundTextElement.innerText = `Found ${_foundHtmlCount} of ${floppiesCount} floppies.`
+    }
+  }
+  const bioVisible = !mainMenuVisible && GAME_STATE._bioVisible >= 0
+  if (bioHtmlVisible !== bioVisible) {
+    bioHtmlVisible = bioVisible
+    if (bioHtmlVisible) {
       body.classList.add('bio')
       bioHtmlContentDiv.innerHTML = bios_sp_html
-      gameTextElement.innerHTML = '[Press E or Space to continue]'
     } else {
       body.classList.remove('bio')
     }

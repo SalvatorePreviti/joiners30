@@ -2,6 +2,8 @@
 // Most of this code will be optimized away in any case by magic release build steps.
 // In developmen mode, _debug/_debug.ts will be used instead.
 
+import type { Vec2, Vec3 } from './math/math-types'
+
 export interface DebugReportInfo {
   context?: string
   file?: string

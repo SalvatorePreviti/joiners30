@@ -1,12 +1,14 @@
 import { min, DEG_TO_RAD } from './math/scalar'
 import { objectAssign } from './core/objects'
-import { KEY_MAIN_MENU, KeyFunctions } from './keyboard'
+import { KEY_MAIN_MENU, KeyFunctions, KEY_ACTION } from './keyboard'
 import { vec3Set } from './math/vec3'
 import { vec2Set } from './math/vec2'
 import { cameraPos, cameraEuler } from './camera'
-import { playMusic, pauseMusic, setVolume } from './music'
 import { setText } from './text'
 import { debug_mode } from './debug'
+import { GAME_STATE } from './state/game-state'
+
+import bios_sp_html from './bios/sp.html'
 
 export const body = document.body
 
@@ -33,6 +35,8 @@ export let mouseYInversion = 1
 
 export let headBobEnabled = true
 
+export let mouseSensitivity = 0.5
+
 /** The main element that holds the canvas and the main menu. */
 const mainElement = document.getElementById('M') as HTMLDivElement
 
@@ -40,8 +44,10 @@ const newGameButton = document.getElementById('R') as HTMLDivElement
 
 const highQualityCheckbox = document.getElementById('Q') as HTMLInputElement
 const invertYCheckbox = document.getElementById('Y') as HTMLInputElement
-const musicVolumeSlider = document.getElementById('V') as HTMLInputElement
+const mouseSensitivitySlider = document.getElementById('V') as HTMLInputElement
 const headBobCheckbox = document.getElementById('H') as HTMLInputElement
+const bioHtmlDiv = document.getElementById('bio') as HTMLDivElement
+const bioHtmlContentDiv = document.getElementById('bioc') as HTMLDivElement
 
 export const saveGameButton = document.getElementById('S')
 
@@ -60,6 +66,7 @@ const handleResize = () => {
   const whStyles = { width: cw | 0, height: ch | 0, fontSize: `${(ch / 23) | 0}px` }
   objectAssign(mainElement.style, whStyles)
   objectAssign(canvasElement.style, whStyles)
+  objectAssign(bioHtmlDiv.style, whStyles)
 
   let { clientWidth: w, clientHeight: h } = mainElement
   if (!highQualityCheckbox.checked) {
@@ -74,9 +81,8 @@ const handleResize = () => {
 }
 
 export const showMainMenu = () => {
-  pauseMusic()
   mainMenuVisible = true
-  body.className = 'N'
+  body.classList.add('N')
   document.exitPointerLock()
 }
 
@@ -98,7 +104,7 @@ export const startOrResumeClick = (newGame = true) => {
   if (!gameStarted) {
     saveGameButton.className = ''
     if (newGame) {
-      setText('Where am I? How did I get here?', 2)
+      setText('Find all the floppy disks!', 2)
     }
     //set camera pos
     newGameButton.innerText = 'Resume Game'
@@ -108,9 +114,8 @@ export const startOrResumeClick = (newGame = true) => {
 
     gameStarted = true
   }
-  playMusic()
   mainMenuVisible = false
-  body.className = ''
+  body.classList.remove('N')
   canvasRequestPointerLock()
 }
 
@@ -120,12 +125,29 @@ onresize = handleResize
 newGameButton.onclick = () => startOrResumeClick()
 
 KeyFunctions[KEY_MAIN_MENU] = showMainMenu
+KeyFunctions[KEY_ACTION] = (repeat: boolean) => {
+  if (!repeat) {
+    GAME_STATE._bioVisible = false
+  }
+}
 
 canvasElement.onmousedown = canvasRequestPointerLock
+bioHtmlDiv.onmousedown = canvasRequestPointerLock
+gameTextElement.onmousedown = canvasRequestPointerLock
+
 highQualityCheckbox.onchange = handleResize
-invertYCheckbox.onchange = () => (mouseYInversion = invertYCheckbox.checked ? -1 : 1)
-headBobCheckbox.onchange = () => (headBobEnabled = headBobCheckbox.checked)
-musicVolumeSlider.onchange = () => setVolume((musicVolumeSlider.value as any) / 100)
+
+invertYCheckbox.onchange = () => {
+  mouseYInversion = invertYCheckbox.checked ? -1 : 1
+}
+
+headBobCheckbox.onchange = () => {
+  headBobEnabled = headBobCheckbox.checked
+}
+
+mouseSensitivitySlider.onchange = () => {
+  mouseSensitivity = parseInt(mouseSensitivitySlider.value) / 100
+}
 
 export const gl = canvasElement.getContext('webgl2', {
   /** Boolean that indicates if the canvas contains an alpha buffer. */
@@ -148,3 +170,19 @@ export const gl = canvasElement.getContext('webgl2', {
 
 /** Main framebuffer used for pregenerating the heightmap and to render the collision shader */
 export const glFrameBuffer: WebGLFramebuffer = gl.createFramebuffer()
+
+let _bioHtmlVisible = null
+
+export function updateBio() {
+  const bioVisible = !mainMenuVisible && GAME_STATE._bioVisible
+  if (_bioHtmlVisible !== bioVisible) {
+    _bioHtmlVisible = bioVisible
+    if (_bioHtmlVisible) {
+      body.classList.add('bio')
+      bioHtmlContentDiv.innerHTML = bios_sp_html
+      gameTextElement.innerHTML = '[Press E or Space to continue]'
+    } else {
+      body.classList.remove('bio')
+    }
+  }
+}

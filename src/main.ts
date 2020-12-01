@@ -1,32 +1,26 @@
 import './css/styles.css'
-import { mainMenuVisible, renderHeight, renderWidth, gl, showMainMenu, glFrameBuffer } from './page'
+import { mainMenuVisible, renderHeight, renderWidth, gl, showMainMenu, glFrameBuffer, updateBio } from './page'
 import { debug_beginFrame, debug_endFrame, debug_trycatch_wrap, debug_log, debug_updateCameraPosition } from './debug'
 
-import { min } from './math/scalar'
 import { updateCamera, cameraPos } from './camera'
 import { buildHeightmapTexture } from './texture-heightmap'
 import { buildNoiseTexture } from './texture-noise'
 import { updateAnimations } from './state/animations'
-import { updateGameObjects, GAME_OBJECTS } from './state/objects'
+import { updateGameObjects, GAME_STATE } from './state/game-state'
 import { updateText } from './text'
 import { loadMainShader, mainShader, prerenderedShader } from './shader-program'
 import { updateCollider, initCollider } from './collider'
-import { buildScreenTextures, bindScreenTexture } from './texture-screen'
 import { initPrerenderedTexture, PRERENDERED_TEXTURE_SIZE } from './texture-prerendered'
-import { MINIGAME } from './state/minigame'
 import './save-load'
-import { loadMusic } from './music'
 import { GL_TRIANGLES, GL_FRAMEBUFFER } from './gl/gl-constants'
 import { updateTime, gameTime } from './time'
 
 setTimeout(() => {
   buildNoiseTexture()
   buildHeightmapTexture()
-  buildScreenTextures()
   initPrerenderedTexture()
   initCollider()
   loadMainShader()
-  loadMusic()
   showMainMenu()
 
   const animationFrame = debug_trycatch_wrap(
@@ -43,7 +37,7 @@ setTimeout(() => {
       updateCamera()
 
       if (!mainMenuVisible) {
-        if (!GAME_OBJECTS._submarine._gameEnded) {
+        if (!GAME_STATE._gameEnded) {
           updateCollider()
         }
         updateAnimations()
@@ -63,11 +57,11 @@ setTimeout(() => {
 
       // Render main scene
 
-      bindScreenTexture(min(MINIGAME._state || gameTime & 1, 3))
-
       mainShader(renderWidth, renderHeight)
 
       gl.drawArrays(GL_TRIANGLES, 0, 3)
+
+      updateBio()
 
       debug_endFrame(gameTime)
     },

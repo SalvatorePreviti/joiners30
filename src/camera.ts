@@ -15,8 +15,8 @@ import {
   debug_updateCameraDirection,
   debug_updateCameraEulerAngles
 } from './debug'
-import { canvasElement, mouseYInversion, headBobEnabled } from './page'
-import { cos, sin, wrapAngleInRadians, clamp, DEG_TO_RAD } from './math/scalar'
+import { canvasElement, mouseYInversion, headBobEnabled, mouseSensitivity } from './page'
+import { cos, sin, wrapAngleInRadians, clamp, DEG_TO_RAD, lerp } from './math/scalar'
 import {
   vec3Temp0,
   vec3Add,
@@ -27,21 +27,19 @@ import {
   vec3New,
   vec3NewValue,
   vec3Set,
-  vec3Temp1
+  vec3Temp1,
+  Vec3
 } from './math/vec3'
-import { vec2New } from './math/vec2'
+import { Vec2, vec2New } from './math/vec2'
 import { typedArraySet } from './core/arrays'
 import { RUMBLING } from './state/animations'
-import { MINIGAME, MINIGAME_LOADING, MINIGAME_ACTIVE, MINIGAME_COMPLETE } from './state/minigame'
-import { GAME_OBJECTS } from './state/objects'
+import { GAME_STATE } from './state/game-state'
 import { gameTimeDelta, gameTime } from './time'
+import type { Mat3 } from './math/math-types'
 
 const CAMERA_SPEED_DEFAULT = 2.1
 
 const CAMERA_SPEED_RUN = debug_mode ? 20 : 5.5
-
-const MOUSE_ROTATION_SENSITIVITY_X = 0.001
-const MOUSE_ROTATION_SENSITIVITY_Y = MOUSE_ROTATION_SENSITIVITY_X
 
 /** Camera position */
 export const cameraPos: Vec3 = vec3New(103, 44, 9)
@@ -69,17 +67,11 @@ export const cameraMoveDown = (amount: number) => {
 }
 
 const updateCameraDirFromEulerAngles = () => {
-  //vec3FromYawAndPitch(cameraDir, cameraEulerAngles)
   let { x: yaw, y: pitch } = cameraEuler
   if (RUMBLING) {
     yaw += sin(gameTime * 100) * 0.005
     pitch += sin(gameTime * 200) * 0.005
   }
-
-  // if (game is not started we should use) {
-  //   yaw = -170 * DEG_TO_RAD
-  //   pitch = 15 * DEG_TO_RAD
-  // }
 
   const sinYaw = sin(yaw)
   const cosYaw = cos(yaw)
@@ -89,7 +81,6 @@ const updateCameraDirFromEulerAngles = () => {
   vec3Normalize(vec3Set(cameraDir, sinYaw * cosPitch, -sinPitch, cosYaw * cosPitch))
 
   // Update rotation matrix
-
   typedArraySet(
     cameraMat3,
     cosYaw,
@@ -109,12 +100,7 @@ let timeMoving = 0
 export const updateCamera = () => {
   const speed = (PressedKeys[KEY_RUN] ? CAMERA_SPEED_RUN : CAMERA_SPEED_DEFAULT) * gameTimeDelta
 
-  if (
-    MINIGAME._state !== MINIGAME_LOADING &&
-    MINIGAME._state !== MINIGAME_ACTIVE &&
-    MINIGAME._state !== MINIGAME_COMPLETE &&
-    !GAME_OBJECTS._submarine._gameEnded
-  ) {
+  if (!GAME_STATE._gameEnded && !GAME_STATE._bioVisible) {
     vec3Set(vec3Temp0, 0, 0, 0)
     if (PressedKeys[KEY_FORWARD]) {
       movementForward(1)
@@ -154,13 +140,10 @@ updateCameraDirFromEulerAngles()
 debug_updateCameraPosition(cameraPos)
 
 onmousemove = (e) => {
-  if (document.pointerLockElement === canvasElement && !GAME_OBJECTS._submarine._gameEnded) {
-    cameraEuler.x = wrapAngleInRadians(cameraEuler.x - e.movementX * MOUSE_ROTATION_SENSITIVITY_X)
+  if (document.pointerLockElement === canvasElement && !GAME_STATE._gameEnded) {
+    const sens = lerp(0.0004, 0.0031, mouseSensitivity)
 
-    cameraEuler.y = clamp(
-      cameraEuler.y + e.movementY * mouseYInversion * MOUSE_ROTATION_SENSITIVITY_Y,
-      -87 * DEG_TO_RAD,
-      87 * DEG_TO_RAD
-    )
+    cameraEuler.x = wrapAngleInRadians(cameraEuler.x - e.movementX * sens)
+    cameraEuler.y = clamp(cameraEuler.y + e.movementY * mouseYInversion * sens, -87 * DEG_TO_RAD, 87 * DEG_TO_RAD)
   }
 }

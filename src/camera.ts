@@ -41,11 +41,11 @@ const CAMERA_SPEED_DEFAULT = 2.1
 
 const CAMERA_SPEED_RUN = debug_mode ? 20 : 5.5
 
-/** Camera position */
-export const cameraPos: Vec3 = vec3New(103, 44, 9)
-
 /** head bob value */
 export let headBob = 0
+
+/** Camera position */
+export const cameraPos: Vec3 = vec3New(103, 44, 9)
 
 /** Camera Yaw (x) and Pitch (y) angles, in radians. */
 export const cameraEuler: Vec2 = vec2New(-102 * DEG_TO_RAD, 23 * DEG_TO_RAD)

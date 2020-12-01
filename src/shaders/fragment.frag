@@ -105,7 +105,7 @@ float epsilon;
 const vec3 COLOR_SKY = vec3(.4, .8, 1);
 const vec3 COLOR_SUN = vec3(1.065, .95, .85);
 
-const vec3 TERRAIN_SIZE = vec3(120., 19., 78.);
+const vec3 TERRAIN_SIZE = vec3(120., 18., 78.);
 const float TERRAIN_OFFSET = 3.;
 const float UNDERGROUND_LEVEL = -TERRAIN_OFFSET + 0.0005;
 
@@ -212,8 +212,7 @@ float terrain(vec3 p) {
   vec3 d = abs(vec3(p.x, p.y + TERRAIN_OFFSET, p.z)) - vec3(TERRAIN_SIZE.x * .5, 0., TERRAIN_SIZE.z * .5);
   if (d.x < 0. && d.z < 0.) {
     float h = unpackFloat(textureLod(iHeightmap, p.xz / TERRAIN_SIZE.xz + .5, 0.));
-    float h1 = 1. - h;
-    d.y -= h * TERRAIN_SIZE.y + h1 * h1* h1;
+    d.y -= h * TERRAIN_SIZE.y;
   }
   return min(d.y, 0.0) + length(max(d, 0.0));
 }
@@ -501,9 +500,9 @@ void main_p() {
 
   vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
 
-  float dist = rayMarch(iCameraPos, ray, 1.2 / PRERENDERED_TEXTURE_SIZE, MIN_DIST);
+  float dist = rayMarch(iCameraPos, ray, 1.2 / PRERENDERED_TEXTURE_SIZE, MIN_DIST );
 
-  uint packed = floatBitsToUint(dist >= MAX_DIST ? MAX_DIST : dist - epsilon);
+  uint packed = floatBitsToUint(dist >= MAX_DIST ? MAX_DIST : dist - epsilon - dist * epsilon * .2);
   oColor = vec4(float((packed >> 24) & 0xffu) / 255., float((packed >> 16) & 0xffu) / 255.,
       float((packed >> 8) & 0xffu) / 255., float(packed & 0xffu) / 255.);
 }

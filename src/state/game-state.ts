@@ -3,8 +3,9 @@ import { cameraPos, cameraDir, cameraEuler } from '../camera'
 import { setText } from '../text'
 import { KEY_ACTION, PressedKeys } from '../keyboard'
 import { vec2Set } from '../math/vec2'
-import { DEG_TO_RAD } from '../math/scalar'
+import { cos, DEG_TO_RAD, PI, sin } from '../math/scalar'
 import { bioHtmlVisible } from '../page'
+import { gameTime } from '../time'
 
 interface GameObject {
   _location: Vec3
@@ -41,7 +42,6 @@ const getVisibleObject = (): GameObject => {
     const floppy = floppies[i]
     if (floppy._visible) {
       const objectLocation = floppy._location
-      console.log(vec3Distance(objectLocation, cameraPos))
       if (vec3Distance(objectLocation, cameraPos) <= floppy._lookAtDistance) {
         if (vec3Dot(cameraDir, vec3Direction(vec3Temp0, cameraPos, objectLocation)) > 0.9) {
           return floppy
@@ -54,12 +54,15 @@ const getVisibleObject = (): GameObject => {
 
 const endGame = () => {
   GAME_STATE._gameEnded = true
-  vec3Set(cameraPos, 5.844, 14.742, 4)
-  vec2Set(cameraEuler, -90 * DEG_TO_RAD, 17 * DEG_TO_RAD)
+  const t = gameTime * 0.2
+  const s = sin(gameTime * 0.4) * 9
+  vec3Set(cameraPos, sin(t) * 80 + s, 38, cos(t) * 40 + s)
+  vec2Set(cameraEuler, t + PI, 23 * DEG_TO_RAD + cos(gameTime * 0.5) * 0.05)
 }
 
 const updateGameObjects = () => {
-  if (!bioHtmlVisible && !GAME_STATE._gameEnded && GAME_STATE._foundCount >= GAME_STATE._floppies.length) {
+  endGame()
+  if (!bioHtmlVisible && GAME_STATE._foundCount >= GAME_STATE._floppies.length) {
     endGame()
   } else {
     const visibleObject = getVisibleObject()

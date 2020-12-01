@@ -61,7 +61,6 @@ const endGame = () => {
 }
 
 const updateGameObjects = () => {
-  endGame()
   if (!bioHtmlVisible && GAME_STATE._foundCount >= GAME_STATE._floppies.length) {
     endGame()
   } else {

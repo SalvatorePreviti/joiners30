@@ -128,7 +128,7 @@ newGameButton.onclick = () => startOrResumeClick()
 KeyFunctions[KEY_MAIN_MENU] = showMainMenu
 KeyFunctions[KEY_ACTION] = (repeat: boolean) => {
   if (!repeat) {
-    GAME_STATE._bioVisible = -1
+    GAME_STATE._bioIndex = -1
   }
 }
 
@@ -185,12 +185,13 @@ export function updateBio() {
     const floppiesCount = GAME_STATE._floppies.length
     _foundHtmlCount = GAME_STATE._foundCount
     if (_foundHtmlCount >= floppiesCount) {
-      foundTextElement.innerHTML = '<br/><h1>Congratulations!<br/>You found all the joiners!</h1>'
+      foundTextElement.innerHTML =
+        '<h2 style="text-align:center"><b>🏆</b><br/>Congratulations!<br/>You found all the joiners!</h2>'
     } else {
-      foundTextElement.innerText = `Found ${_foundHtmlCount} of ${floppiesCount} floppies.`
+      foundTextElement.innerHTML = `${_foundHtmlCount}/${floppiesCount}&nbsp;<b>💾</b>`
     }
   }
-  const bioVisible = !mainMenuVisible && GAME_STATE._bioVisible >= 0
+  const bioVisible = !mainMenuVisible && GAME_STATE._bioIndex >= 0
   if (bioHtmlVisible !== bioVisible) {
     bioHtmlVisible = bioVisible
     if (bioHtmlVisible) {

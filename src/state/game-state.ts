@@ -17,7 +17,7 @@ interface GameObject {
 
 const GAME_STATE = {
   _gameEnded: false,
-  _bioVisible: -1,
+  _bioIndex: -1,
   _foundCount: 0,
   _floppies: [newFloppy(-46.5, 1.01, -25)]
 }
@@ -31,7 +31,7 @@ function newFloppy(x: number, y: number, z: number, _lookAtDistance = 4): GameOb
     _onInteract() {
       this._visible = false
       ++GAME_STATE._foundCount
-      GAME_STATE._bioVisible = GAME_STATE._floppies.indexOf(this)
+      GAME_STATE._bioIndex = GAME_STATE._floppies.indexOf(this)
     }
   }
 }

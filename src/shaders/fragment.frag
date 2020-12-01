@@ -496,13 +496,13 @@ void main_c() {
 /**********************************************************************/
 
 void main_p() {
-  vec2 screen = fragCoord / (PRERENDERED_TEXTURE_SIZE * .5) - 1. + .5 / PRERENDERED_TEXTURE_SIZE;
+  vec2 screen = fragCoord / (PRERENDERED_TEXTURE_SIZE * .5) - 1.;
 
   vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
 
-  float dist = rayMarch(iCameraPos, ray, 1.2 / PRERENDERED_TEXTURE_SIZE, MIN_DIST );
+  float dist = rayMarch(iCameraPos, ray, 1.45 / PRERENDERED_TEXTURE_SIZE, MIN_DIST );
 
-  uint packed = floatBitsToUint(dist >= MAX_DIST ? MAX_DIST : dist - epsilon - dist * epsilon * .2);
+  uint packed = floatBitsToUint(dist >= MAX_DIST ? MAX_DIST : dist - epsilon);
   oColor = vec4(float((packed >> 24) & 0xffu) / 255., float((packed >> 16) & 0xffu) / 255.,
       float((packed >> 8) & 0xffu) / 255., float(packed & 0xffu) / 255.);
 }

@@ -4,7 +4,6 @@ import { cameraPos, cameraDir, cameraEuler } from '../camera'
 import { setText } from '../text'
 import { KEY_ACTION, KEY_FLASHLIGHT_TOGGLE, KeyFunctions, PressedKeys } from '../keyboard'
 import { objectValues } from '../core/objects'
-import { MINIGAME, MINIGAME_LOADING, MINIGAME_INACTIVE, MINIGAME_COMPLETE, MINIGAME_COMPLETE_2 } from './minigame'
 import { vec2Set } from '../math/vec2'
 import { DEG_TO_RAD } from '../math/scalar'
 
@@ -100,26 +99,13 @@ const GAME_OBJECTS = {
     _visible: true,
     _lookAtDistance: 1.5,
     _onInteract() {
-      if (MINIGAME._state === MINIGAME_COMPLETE) {
-        MINIGAME._state = MINIGAME_COMPLETE_2
-      }
-      if (ANIMATIONS._antennaRotation._running && INVENTORY._floppy && MINIGAME._state === MINIGAME_INACTIVE) {
-        MINIGAME._state = MINIGAME_LOADING
+      if (ANIMATIONS._antennaRotation._running && INVENTORY._floppy) {
         runAnimation(ANIMATIONS._afterFloppyInsert)
         vec3Set(cameraPos, 5.844, 14.742, 4)
         vec2Set(cameraEuler, -90 * DEG_TO_RAD, 17 * DEG_TO_RAD)
       }
     },
-    _onLookAt: () =>
-      MINIGAME._state === MINIGAME_COMPLETE
-        ? "A submarine? That's my way out! [Press E or Space to continue]"
-        : MINIGAME._state !== MINIGAME_INACTIVE
-        ? ''
-        : ANIMATIONS._antennaRotation._running
-        ? INVENTORY._floppy
-          ? 'Insert the floppy disk'
-          : 'Damn, I need to find this floppy disk'
-        : 'There is no electricity, there must be a generator somewhere on this damn island'
+    _onLookAt: () => "A submarine? That's my way out! [Press E or Space to continue]"
   },
   _monumentButton: {
     _location: vec3New(47.5, 4, 30.5),

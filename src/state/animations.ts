@@ -1,7 +1,6 @@
 import { objectValues } from '../core/objects'
 import { GAME_OBJECTS } from './objects'
 import { vec3New } from '../math/vec3'
-import { MINIGAME, MINIGAME_ACTIVE } from './minigame'
 import { gameTimeDelta } from '../time'
 
 interface Animation {
@@ -79,10 +78,7 @@ const ANIMATIONS = {
     _initial: 0,
     _max: 1,
     _speed: 1,
-    _running: 0,
-    _onComplete() {
-      MINIGAME._state = MINIGAME_ACTIVE
-    }
+    _running: 0
   },
   _submarine: {
     _value: -10,

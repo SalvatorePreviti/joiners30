@@ -65,7 +65,6 @@ export const loadShaderFunction = (mainFunction: string) => {
   const iNoise = gl.getUniformLocation(program, 'tN')
   const iHeightmap = gl.getUniformLocation(program, 'tH')
   const iPrerendered = gl.getUniformLocation(program, 'tP')
-  const iScreens = gl.getUniformLocation(program, 'tS')
   const iResolution = gl.getUniformLocation(program, 'iR')
   const iCameraMat3 = gl.getUniformLocation(program, 'iM')
   const iSunDirection = gl.getUniformLocation(program, 'iS')
@@ -76,7 +75,7 @@ export const loadShaderFunction = (mainFunction: string) => {
   const iB = gl.getUniformLocation(program, 'iB')
   const iX = gl.getUniformLocation(program, 'iX')
 
-  ;[iNoise, iHeightmap, iPrerendered, iScreens].map((t, i) => gl.uniform1i(t, i))
+  ;[iNoise, iHeightmap, iPrerendered].map((t, i) => gl.uniform1i(t, i))
 
   const useShader = (width: number, height: number, isCollider?: boolean) => {
     gl.viewport(0, 0, width, height)

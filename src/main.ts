@@ -2,7 +2,6 @@ import './css/styles.css'
 import { mainMenuVisible, renderHeight, renderWidth, gl, showMainMenu, glFrameBuffer } from './page'
 import { debug_beginFrame, debug_endFrame, debug_trycatch_wrap, debug_log, debug_updateCameraPosition } from './debug'
 
-import { min } from './math/scalar'
 import { updateCamera, cameraPos } from './camera'
 import { buildHeightmapTexture } from './texture-heightmap'
 import { buildNoiseTexture } from './texture-noise'
@@ -11,9 +10,7 @@ import { updateGameObjects, GAME_OBJECTS } from './state/objects'
 import { updateText } from './text'
 import { loadMainShader, mainShader, prerenderedShader } from './shader-program'
 import { updateCollider, initCollider } from './collider'
-import { buildScreenTextures, bindScreenTexture } from './texture-screen'
 import { initPrerenderedTexture, PRERENDERED_TEXTURE_SIZE } from './texture-prerendered'
-import { MINIGAME } from './state/minigame'
 import './save-load'
 import { GL_TRIANGLES, GL_FRAMEBUFFER } from './gl/gl-constants'
 import { updateTime, gameTime } from './time'
@@ -21,7 +18,6 @@ import { updateTime, gameTime } from './time'
 setTimeout(() => {
   buildNoiseTexture()
   buildHeightmapTexture()
-  buildScreenTextures()
   initPrerenderedTexture()
   initCollider()
   loadMainShader()
@@ -60,8 +56,6 @@ setTimeout(() => {
       gl.bindFramebuffer(GL_FRAMEBUFFER, null)
 
       // Render main scene
-
-      bindScreenTexture(min(MINIGAME._state || gameTime & 1, 3))
 
       mainShader(renderWidth, renderHeight)
 

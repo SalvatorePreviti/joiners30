@@ -140,10 +140,6 @@ uniform highp sampler2D iHeightmap;
 #define iPrerendered tP
 uniform highp sampler2D iPrerendered;
 
-// Screens texture
-#define iScreens tS
-uniform highp sampler2D iScreens;
-
 //=== STATE ===
 
 // Keep the current epsilon global
@@ -657,18 +653,6 @@ float guardTower(vec3 ip) {
   // clang-format on
 }
 
-vec2 screenCoords;
-float screen(vec3 p, vec3 screenPosition, vec2 size) {
-  p -= screenPosition;
-  float bounds = length(p) - 2.;
-  if (bounds > .5)
-    return bounds;
-  p.xz *= rot(PI / 2.);
-  screenCoords = (size - p.xy) / (size * 2.);
-  float screen = cuboid(p, vec3(size.xy, 0.01));
-  return screen;
-}
-
 float terrain(vec3 p) {
   vec3 d = abs(vec3(p.x, p.y + TERRAIN_OFFSET, p.z)) - vec3(TERRAIN_SIZE.x * .5, 0., TERRAIN_SIZE.z * .5);
   if (d.x < 0. && d.z < 0.) {
@@ -704,19 +688,15 @@ int material = MATERIAL_SKY;
 
 float distanceToNearestSurface(vec3 p) {
   float t = terrain(p);
-  if (t <= epsilon) {
-    material = MATERIAL_TERRAIN;
-    return t;
+  if (t > epsilon) {
+    float n = nonTerrain(p);
+    if (t >= n) {
+      material = MATERIAL_BUILDINGS;
+      return n;
+    }
   }
-  float n = nonTerrain(p);
-  float s = screen(p, vec3(4.76, 14.42, 4), vec2(.45, .29));
-  float sn = min(s, n);
-  if (t < sn) {
-    material = MATERIAL_TERRAIN;
-    return t;
-  }
-  material = s <= n ? MATERIAL_SCREEN : MATERIAL_BUILDINGS;
-  return sn;
+  material = MATERIAL_TERRAIN;
+  return t;
 }
 
 vec3 computeNonTerrainNormal(vec3 p) {
@@ -855,10 +835,6 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   vec3 color;
   vec3 normal = vec3(0, 1, 0);
   float mdist = dist;
-
-  if (material == MATERIAL_SCREEN) {
-    return iAnimAntennaRotation > 0. ? texture(iScreens, screenCoords).xyz : vec3(0);
-  }
 
   vec3 hit = p + dir * dist;
 

@@ -1,6 +1,6 @@
 # newjoiners 30 november 2020
 
-Code/engine based on the minigame [https://www.shadertoy.com/](https://github.com/SalvatorePreviti/js13k-2020)! by Ben Clark and Salvatore Previti for [https://2020.js13kgames.com/entries/island-not-found](JS13K 2020).
+Code/engine based on the game [https://github.com/SalvatorePreviti/js13k-2020](Island Not Found) by Ben Clark and Salvatore Previti for [https://2020.js13kgames.com/entries/island-not-found](JS13K 2020).
 
 # Build the source code
 

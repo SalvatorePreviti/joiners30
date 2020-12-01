@@ -33,7 +33,6 @@ import {
 import { Vec2, vec2New } from './math/vec2'
 import { typedArraySet } from './core/arrays'
 import { RUMBLING } from './state/animations'
-import { MINIGAME, MINIGAME_LOADING, MINIGAME_ACTIVE, MINIGAME_COMPLETE } from './state/minigame'
 import { GAME_OBJECTS } from './state/objects'
 import { gameTimeDelta, gameTime } from './time'
 import type { Mat3 } from './math/math-types'
@@ -111,12 +110,7 @@ let timeMoving = 0
 export const updateCamera = () => {
   const speed = (PressedKeys[KEY_RUN] ? CAMERA_SPEED_RUN : CAMERA_SPEED_DEFAULT) * gameTimeDelta
 
-  if (
-    MINIGAME._state !== MINIGAME_LOADING &&
-    MINIGAME._state !== MINIGAME_ACTIVE &&
-    MINIGAME._state !== MINIGAME_COMPLETE &&
-    !GAME_OBJECTS._submarine._gameEnded
-  ) {
+  if (!GAME_OBJECTS._submarine._gameEnded) {
     vec3Set(vec3Temp0, 0, 0, 0)
     if (PressedKeys[KEY_FORWARD]) {
       movementForward(1)

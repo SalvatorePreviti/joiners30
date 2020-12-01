@@ -82,14 +82,8 @@ out vec4 oColor;
 
 ///// Game object uniforms /////
 
-// Flashlight on
-#define iFlashlightOn ((iF & 0x01) != 0)
-
 // Prison Key
 #define iGOKeyVisible ((iF & 0x02) != 0)
-
-// Flashlight
-#define iGOFlashlightVisible ((iF & 0x04) != 0)
 
 // Antenna key
 #define iGOAntennaKeyVisible ((iF & 0x08) != 0)
@@ -272,16 +266,6 @@ mat2 rot(float a) {
 
 vec3 invZ(vec3 p) {
   return vec3(p.xy, -p.z);
-}
-
-// === GEOMETRY ===
-float gameObjectFlashlight(vec3 p) {
-  float bounds = length(p) - .3;
-  if (bounds > .3)
-    return bounds;
-  p.xz *= rot(-1.2);
-  p.yz *= rot(-.2);
-  return min(cylinder(p, .025, .1), max(sphere(p - vec3(0, 0, .12), .05), p.z - .12));
 }
 
 float gameObjectKey(vec3 p) {
@@ -479,10 +463,6 @@ float prison(vec3 ip) {
 
   float gameObjects = MAX_DIST;
 
-  if (iGOFlashlightVisible) {
-    gameObjects = gameObjectFlashlight(ip - vec3(-42, 3, 11.2));
-  }
-
   if (iGOKeyVisible) {
     gameObjects = min(gameObjects, gameObjectKey(ip.yzx - vec3(2., 7.4, -45.5)));
   }
@@ -656,7 +636,9 @@ float guardTower(vec3 ip) {
 float terrain(vec3 p) {
   vec3 d = abs(vec3(p.x, p.y + TERRAIN_OFFSET, p.z)) - vec3(TERRAIN_SIZE.x * .5, 0., TERRAIN_SIZE.z * .5);
   if (d.x < 0. && d.z < 0.) {
-    d.y -= unpackFloat(textureLod(iHeightmap, p.xz / TERRAIN_SIZE.xz + .5, 0.)) * TERRAIN_SIZE.y;
+    float h = unpackFloat(textureLod(iHeightmap, p.xz / TERRAIN_SIZE.xz + .5, 0.));
+    float h1 = 1. - h;
+    d.y -= h * TERRAIN_SIZE.y + h1 * h1* h1;
   }
   return min(d.y, 0.0) + length(max(d, 0.0));
 }
@@ -921,13 +903,6 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
     shadow = getShadow(p + dir * mdist, mdist, normal, 1.);
   }
 
-  // Flashlight
-  if (iFlashlightOn && dist < 20.) {
-    float flashLightShadow = pow(clamp(dot(iCameraDir, dir), 0., 1.), 32.) * smoothstep(10., 0., dist);
-    lightIntensity += flashLightShadow * max(dot(normal, -dir), 0.) * (1. - lightIntensity);
-    shadow += flashLightShadow * (1. - shadow);
-  }
-
   color = mix(color, waterColor, waterOpacity);
   color = (color * (COLOR_SUN * lightIntensity) + specular) * mix(0.38 + (1. - lightIntensity) * .2, 1., shadow);
 
@@ -989,7 +964,7 @@ void main_h() {
   vec2 coord = fragCoord / (iResolution * 0.5) - 1., size = vec2(1.3, 1.), derivative = vec2(0.);
   float heightA = 0., heightB = 1., persistence = 1., normalization = 0., octave = 1.;
   for (; octave < 11.;) {
-    vec3 noisedxy = noiseDxy(21.1 + (coord * size) * rot(octave++ * 2.4));
+    vec3 noisedxy = noiseDxy(21.1 + (coord * size) * rot(octave++ * 2.5));
     derivative += noisedxy.yz;
     heightA += persistence * (1. - noisedxy.x) / (1. + dot(derivative, derivative));
     heightB += persistence * (.5 - noisedxy.x);
@@ -1000,9 +975,9 @@ void main_h() {
   heightA /= normalization;
   heightB *= .5;
   float tmask = (length((coord * (1.2 - heightB + heightA))) *
-            clamp01(heightB + .55 - .5 * heightA * coord.x * (1. - coord.y * .5))),
+            clamp01(heightB + .56 - .5 * heightA * coord.x * (1. - coord.y * .5))),
         circles = heightmapCircle(coord, -.45, -.52, 1., 2.3) + heightmapCircle(coord, -.6, -.1, 1., 3.3) +
-      heightmapCircle(coord, .6, -.7, 1., 5.) + heightmapCircle(coord, .84, .84, heightA, heightB * 5.);
+      heightmapCircle(coord, .5, -.7, 1., 5.) + heightmapCircle(coord, .6, .53, heightA * 2., heightB * 5.);
   tmask = clamp01(1. - smin(tmask, 1. - mix(0., heightA * 2., circles), .05 + heightB * .5));
   vec2 distHV = 1. - abs(coord) + heightA * .04;
   tmask = smin(tmask, smin(distHV.x, distHV.y, 0.3) * 2., .1);

@@ -100,9 +100,7 @@ export const loadShaderFunction = (mainFunction: string) => {
 
     gl.uniform1i(
       iF,
-      (GAME_OBJECTS._flashlight._active && 0x01) |
-        (GAME_OBJECTS._key._visible && 0x02) |
-        (GAME_OBJECTS._flashlight._visible && 0x04) |
+      (GAME_OBJECTS._key._visible && 0x02) |
         (GAME_OBJECTS._antennaKey._visible && 0x08) |
         (GAME_OBJECTS._floppyDisk._visible && 0x10)
     )

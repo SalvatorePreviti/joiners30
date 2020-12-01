@@ -2,7 +2,7 @@ import { vec3New, vec3Distance, vec3Direction, vec3Temp0, vec3Dot, vec3Set, Vec3
 import { runAnimation, ANIMATIONS } from './animations'
 import { cameraPos, cameraDir, cameraEuler } from '../camera'
 import { setText } from '../text'
-import { KEY_ACTION, KEY_FLASHLIGHT_TOGGLE, KeyFunctions, PressedKeys } from '../keyboard'
+import { KEY_ACTION, KeyFunctions, PressedKeys } from '../keyboard'
 import { objectValues } from '../core/objects'
 import { vec2Set } from '../math/vec2'
 import { DEG_TO_RAD } from '../math/scalar'
@@ -18,7 +18,6 @@ interface GameObject {
 const INVENTORY = {
   _key: false,
   _antennaKey: false,
-  _flashlight: false,
   _floppy: false
 }
 
@@ -33,18 +32,6 @@ const GAME_OBJECTS = {
       setText('You picked up a key', 3)
     },
     _onLookAt: () => 'A key, how convenient! [press E or Space to collect]'
-  },
-  _flashlight: {
-    _location: vec3New(-42, 3, 11.2),
-    _visible: true,
-    _active: false,
-    _lookAtDistance: 1.5,
-    _onInteract() {
-      this._visible = false
-      INVENTORY._flashlight = true
-      setText('You picked up the flashlight. [Press F to activate/deactivate]', 3)
-    },
-    _onLookAt: () => 'Pick up the flashlight [press E or Space]'
   },
   _antennaInitialLookat: {
     _location: vec3New(-40.5, 4.5, 11),
@@ -271,6 +258,3 @@ const updateGameObjects = () => {
 }
 
 export { GAME_OBJECTS, INVENTORY, updateGameObjects }
-
-KeyFunctions[KEY_FLASHLIGHT_TOGGLE] = (repeat: boolean) =>
-  !repeat && (GAME_OBJECTS._flashlight._active = INVENTORY._flashlight && !GAME_OBJECTS._flashlight._active)

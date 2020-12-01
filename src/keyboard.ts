@@ -13,8 +13,6 @@ export const KEY_RUN = 5
 
 export const KEY_ACTION = 6
 
-export const KEY_FLASHLIGHT_TOGGLE = 7
-
 export const KEY_MAIN_MENU = 8
 
 export const KEY_FLY_UP = 10
@@ -52,9 +50,6 @@ const _keyMap: Record<string, number> = {
   e: KEY_ACTION,
   E: KEY_ACTION,
   ' ': KEY_ACTION,
-
-  f: KEY_FLASHLIGHT_TOGGLE,
-  F: KEY_FLASHLIGHT_TOGGLE,
 
   Escape: KEY_MAIN_MENU,
   M: KEY_MAIN_MENU,

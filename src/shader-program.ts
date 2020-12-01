@@ -70,10 +70,6 @@ export const loadShaderFunction = (mainFunction: string) => {
   const iSunDirection = gl.getUniformLocation(program, 'iS')
   const iP = gl.getUniformLocation(program, 'iP')
   const iD = gl.getUniformLocation(program, 'iD')
-  const iF = gl.getUniformLocation(program, 'iF')
-  const iA = gl.getUniformLocation(program, 'iA')
-  const iB = gl.getUniformLocation(program, 'iB')
-  const iX = gl.getUniformLocation(program, 'iX')
 
   ;[iNoise, iHeightmap, iPrerendered].map((t, i) => gl.uniform1i(t, i))
 
@@ -97,46 +93,6 @@ export const loadShaderFunction = (mainFunction: string) => {
 
     // Camera rotation matrix
     gl.uniformMatrix3fv(iCameraMat3, false, cameraMat3)
-
-    gl.uniform1i(
-      iF,
-      (GAME_OBJECTS._key._visible && 0x02) |
-        (GAME_OBJECTS._antennaKey._visible && 0x08) |
-        (GAME_OBJECTS._floppyDisk._visible && 0x10)
-    )
-
-    gl.uniform4f(
-      iA,
-      // prison door, open-closed
-      ANIMATIONS._prisonDoor._value,
-      // antenna door, open-closed
-      ANIMATIONS._antennaDoor._value,
-      // monument Descend
-      ANIMATIONS._monumentDescend._value,
-      // ramp to oil rig
-      ANIMATIONS._oilrigRamp._value
-    )
-
-    gl.uniform4f(
-      iB,
-      // wheel on oil rig
-      ANIMATIONS._oilrigWheel._value,
-      // antenna rotation
-      ANIMATIONS._antennaRotation._value,
-      // elevator height
-      ANIMATIONS._elevatorHeight._value,
-      // submarine position
-      min(0, ANIMATIONS._submarine._value) + waterLevel
-    )
-
-    gl.uniform4f(
-      iX,
-      // inner ramp on oil rig
-      6 - ANIMATIONS._oilrigRamp2._value * 6,
-      0,
-      0,
-      0
-    )
   }
 
   if (debug_mode) {

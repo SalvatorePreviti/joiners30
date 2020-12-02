@@ -110,8 +110,8 @@ export const startOrResumeClick = (newGame = true) => {
     //set camera pos
     newGameButton.innerText = 'Resume Game'
     //start positions:
-    vec3Set(cameraPos, -44, 4, 11)
-    vec2Set(cameraEuler, 70 * DEG_TO_RAD, 0 * DEG_TO_RAD)
+    vec3Set(cameraPos, 20, 8, 52)
+    vec2Set(cameraEuler, 178.4 * DEG_TO_RAD, 0)
 
     gameStarted = true
   }

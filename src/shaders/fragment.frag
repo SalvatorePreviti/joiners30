@@ -105,7 +105,7 @@ float epsilon;
 const vec3 COLOR_SKY = vec3(.4, .8, 1);
 const vec3 COLOR_SUN = vec3(1.065, .95, .85);
 
-const vec3 TERRAIN_SIZE = vec3(120., 18., 78.);
+const vec3 TERRAIN_SIZE = vec3(120., 17.8, 78.);
 const float TERRAIN_OFFSET = 3.;
 const float UNDERGROUND_LEVEL = -TERRAIN_OFFSET + 0.0005;
 
@@ -191,10 +191,30 @@ float torus(vec3 p, vec2 t) {
 
 //=== OPERATIONS ===
 
+// hg_sdf: http://mercury.sexy/hg_sdf/
+// splits world up with limits
+float pModInterval(float value, float size, float start, float stop) {
+  float halfsize = size * .5;
+  float c = floor((value + halfsize) / size);
+  float p = mod(value + halfsize, size) - halfsize;
+  return c > stop ? p + size * (c - stop) : c < start ? p + size * (c - start) : p;
+}
+
+// Repeat space along one axis. Use like this to repeat along the x axis:
+float pMod(float p, float size) {
+	float halfsize = size * .5;
+  return mod(p + halfsize, size) - halfsize;
+}
+
 // Rotation by a dynamic angle
 mat2 rot(float a) {
   float c = cos(a), s = sin(a);
   return mat2(c, s, -s, c);
+}
+
+vec3 rotXZ(vec3 p, float a) {
+  p.xz *= rot(a);
+  return p;
 }
 
 float objectFloppy(vec3 p) {
@@ -217,15 +237,40 @@ float terrain(vec3 p) {
   return min(d.y, 0.0) + length(max(d, 0.0));
 }
 
+float portBridge(vec3 p) {
+  vec3 q = rotXZ(p - vec3(20, 1.6, 40), 0.);
+  vec3 qramp = q - vec3(0., -.9, -15.5);
+  qramp.yz *= rot(-.5);
+  float block = min(
+    cuboid(q, vec3(2, .35, 14)),
+    cuboid(qramp, vec3(2, .35, 1.9))
+  );
+
+  q.x = pModInterval(q.x - 2., 4., -1.1, 0.1);
+  
+  float ch = cylinder(q - vec3(0, 1.75, 0), .11, 14.); 
+
+  vec3 q1 = q - vec3(0, -1, 0);
+  q1.z = pModInterval(q1.z, 3.5, -4., 4.);
+  float c = cylinder(q1.xzy, .2, 3.);
+
+  updateSubMaterial(SUBMATERIAL_METAL, ch);
+  updateSubMaterial(SUBMATERIAL_WOOD, c);
+
+  return min(c, min(ch, block));
+}
+
 float nonTerrain(vec3 p) {
-  float plank = cuboid(p - vec3(-47, .5, -26), vec3(1,.5,3));
+  /*float blk1 = cuboid(p - vec3(-47, -1., -22), vec3(1, 2., 4));
+  float blk2 = cuboid(p - vec3(-45, -1., -22), vec3(1, 2., 4));*/
+
   float objects = MAX_DIST;
   
   if (iFloppyVisible) {
     objects = min(objects, objectFloppy(p - vec3(-46.5, 1.01, -25)));
   }
 
-  float structures = plank;
+  float structures = portBridge(p);
 
   if (objects < structures) {
     return objects;

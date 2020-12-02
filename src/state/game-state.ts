@@ -6,6 +6,7 @@ import { vec2Set } from '../math/vec2'
 import { cos, DEG_TO_RAD, PI, sin } from '../math/scalar'
 import { bioHtmlVisible } from '../page'
 import { gameTime } from '../time'
+import { arrayFrom, shuffleArray } from '../core/arrays'
 
 interface GameObject {
   _location: Vec3
@@ -32,8 +33,14 @@ const GAME_STATE = {
   ]
 }
 
-function newFloppy(x: number, y: number, z: number, _lookAtDistance = 1.2): GameObject {
+// Shuffle the bios all aroun the island
+shuffleArray(arrayFrom(GAME_STATE._floppies.keys())).forEach(
+  (value, index) => (GAME_STATE._floppies[index]._bioIdx = value)
+)
+
+function newFloppy(x: number, y: number, z: number, _lookAtDistance = 1.2) {
   return {
+    _bioIdx: 0,
     _location: { x, y, z },
     _visible: true,
     _lookAtDistance,

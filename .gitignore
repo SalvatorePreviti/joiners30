@@ -106,3 +106,4 @@ $RECYCLE.BIN
 # </@acuris/eslint-config>
 
 #dist
+src/bios/bios-data

@@ -19,10 +19,20 @@ const GAME_STATE = {
   _gameEnded: false,
   _bioIndex: -1,
   _foundCount: 0,
-  _floppies: [newFloppy(-46.5, 1.01, -25)]
+  _floppies: [
+    newFloppy(18.33, 1.9562, 22.34),
+    newFloppy(25.7, 1.9562, 22.5),
+    newFloppy(36, 5.361, -12.6),
+    newFloppy(47.1, 2.407, 0.14),
+    newFloppy(-41.5, 2.805, 2.1),
+    newFloppy(-47.8, 2.64, 13.6),
+    newFloppy(-11.3, 6.308, -16.1),
+    newFloppy(7.7, 12.2, 0.44),
+    newFloppy(1.5, 15.805, -0.95)
+  ]
 }
 
-function newFloppy(x: number, y: number, z: number, _lookAtDistance = 4): GameObject {
+function newFloppy(x: number, y: number, z: number, _lookAtDistance = 1.2): GameObject {
   return {
     _location: { x, y, z },
     _visible: true,
@@ -58,18 +68,25 @@ const endGame = () => {
   const s = sin(gameTime * 0.4) * 9
   vec3Set(cameraPos, sin(t) * 80 + s, 38, cos(t) * 40 + s)
   vec2Set(cameraEuler, t + PI, 23 * DEG_TO_RAD + cos(gameTime * 0.5) * 0.05)
+  setText('')
 }
 
+let _actionWasPressed = false
+
 const updateGameObjects = () => {
-  if (!bioHtmlVisible && GAME_STATE._foundCount >= GAME_STATE._floppies.length) {
-    endGame()
-  } else {
-    const visibleObject = getVisibleObject()
-    setText((visibleObject && visibleObject._onLookAt && visibleObject._onLookAt()) || '')
-    if (visibleObject && PressedKeys[KEY_ACTION] && visibleObject._onInteract) {
-      visibleObject._onInteract()
+  if (!bioHtmlVisible) {
+    if (GAME_STATE._foundCount >= GAME_STATE._floppies.length) {
+      endGame()
+    } else {
+      const visibleObject = getVisibleObject()
+      setText((visibleObject && visibleObject._onLookAt && visibleObject._onLookAt()) || '')
+      if (visibleObject && !_actionWasPressed && PressedKeys[KEY_ACTION] && visibleObject._onInteract) {
+        visibleObject._onInteract()
+      }
     }
   }
+
+  _actionWasPressed = PressedKeys[KEY_ACTION]
 }
 
 export { GAME_STATE, updateGameObjects }

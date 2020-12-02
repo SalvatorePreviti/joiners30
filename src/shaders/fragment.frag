@@ -12,8 +12,7 @@ precision highp float;
 #define SUBMATERIAL_METAL 1  //>0 is smooth and has specular
 #define SUBMATERIAL_BRIGHT_RED 2
 #define SUBMATERIAL_DARK_RED 3
-#define SUBMATERIAL_BLACK_PURPLE 4
-#define SUBMATERIAL_YELLOW 5
+#define SUBMATERIAL_YELLOW 4
 
 const float PI = 3.14159265359;
 
@@ -93,7 +92,7 @@ uniform highp sampler2D iPrerendered;
 ///// Game object uniforms /////
 
 // Flashlight on
-#define iFloppyVisible ((iF0 & 0x0001) != 0)
+#define iFloppyVisible(N) ((iF0 & (1 << N)) != 0)
 
 //=== STATE ===
 
@@ -185,6 +184,11 @@ float cylinder(vec3 p, float r, float l) {
   return max(d, abs(p.z) - l);
 }
 
+float cylinderVertical(vec3 p, float r, float l) {
+  float d = length(p.xz) - r;
+  return max(d, abs(p.y) - l);
+}
+
 float torus(vec3 p, vec2 t) {
   return length(vec2(length(p.xz) - t.x, p.y)) - t.y;
 }
@@ -217,6 +221,12 @@ vec3 rotXZ(vec3 p, float a) {
   return p;
 }
 
+float opOnion(float sdf, float thickness) {
+  return abs(sdf) - thickness;
+}
+
+// === OBJECTS ===
+
 float objectFloppy(vec3 p) {
   float clip = cuboid(p - vec3(.056, 0, 0), vec3(.035, .006, .05));
   float body = cuboid(p, vec3(.09, .005, .0937));
@@ -228,6 +238,8 @@ float objectFloppy(vec3 p) {
   return clip;
 }
 
+// === WORLD ===
+
 float terrain(vec3 p) {
   vec3 d = abs(vec3(p.x, p.y + TERRAIN_OFFSET, p.z)) - vec3(TERRAIN_SIZE.x * .5, 0., TERRAIN_SIZE.z * .5);
   if (d.x < 0. && d.z < 0.) {
@@ -238,7 +250,7 @@ float terrain(vec3 p) {
 }
 
 float portBridge(vec3 p) {
-  vec3 q = rotXZ(p - vec3(20, 1.6, 40), 0.);
+  vec3 q = rotXZ(p, 0.);
   vec3 qramp = q - vec3(0., -.9, -15.5);
   qramp.yz *= rot(-.5);
   float block = min(
@@ -252,7 +264,7 @@ float portBridge(vec3 p) {
 
   vec3 q1 = q - vec3(0, -1, 0);
   q1.z = pModInterval(q1.z, 3.5, -4., 4.);
-  float c = cylinder(q1.xzy, .2, 3.);
+  float c = cylinderVertical(q1, .2, 3.);
 
   updateSubMaterial(SUBMATERIAL_METAL, ch);
   updateSubMaterial(SUBMATERIAL_WOOD, c);
@@ -260,17 +272,105 @@ float portBridge(vec3 p) {
   return min(c, min(ch, block));
 }
 
+float barrel(vec3 p) {
+  float c = cylinderVertical(p, .55, .8);
+  updateSubMaterial(SUBMATERIAL_YELLOW, c);
+  return c;
+}
+
+float box(vec3 p) {
+  float c = cube(p, .8);
+  updateSubMaterial(SUBMATERIAL_WOOD, c);
+  return c;
+}
+
+float prison(vec3 ip) {
+  vec3 p = rotXZ(ip.xyz - vec3(-39, 1.4, 1), -0.1);
+
+  float bounds = length(p) - 8.;
+  if (bounds > 5.)
+    return bounds;
+
+  p.y -= 2.;
+  float cornerBox = cuboid(p - vec3(-2.7, -1.2, 1.2), vec3(0.35, .6, .7));
+  float structure = max(opOnion(cuboid(p, vec3(4, 2, 2)), 0.23),  // The main box
+      -min(  // Cut holes for:
+          cylinder(p - vec3(0, .2, 0), .8, 100.),  // the windows
+          cuboid(p - vec3(5.5, -.37, 0), vec3(3, 1.8, 1.5))  // the door
+          ));
+
+  // The bars on the windows:
+  p.x = pModInterval(p.x, .3, -10., 10.);  // repeat along x
+  p.z = abs(p.z);  // mirror on z axis
+  float bars = cylinder(p - vec3(0, 2, .5), .01, 1.);  // draw a single bar
+  updateSubMaterial(SUBMATERIAL_METAL, bars);
+  updateSubMaterial(SUBMATERIAL_WOOD, cornerBox);
+
+  float nearest = min(bars, min(structure, cornerBox));
+
+  float gameObjects = MAX_DIST;
+
+  if (gameObjects < nearest) {
+    updateSubMaterial(SUBMATERIAL_BRIGHT_RED, gameObjects);
+    return gameObjects;
+  }
+  return nearest;
+}
+
+float bigTube(vec3 p) {
+  float f = max(opOnion(cylinder(p, 2.5, 3.), 0.1), -cylinder(p, 2., 6.));
+  updateSubMaterial(SUBMATERIAL_METAL, f);
+  float holder = cylinderVertical((p - vec3(-1.5, -.9, -1.3)), .5, .6);
+  updateSubMaterial(SUBMATERIAL_DARK_RED, holder);
+  return min(f, holder);
+}
+
 float nonTerrain(vec3 p) {
-  /*float blk1 = cuboid(p - vec3(-47, -1., -22), vec3(1, 2., 4));
-  float blk2 = cuboid(p - vec3(-45, -1., -22), vec3(1, 2., 4));*/
+  float structures = portBridge(p - vec3(20, 1.6, 40));
+  
+  structures = min(structures, min(barrel(p - vec3(18., 1.15, 22)), min(barrel(p - vec3(16.8, 1.21, 22.1)),  barrel(p - vec3(17.4, 1.17, 21)))));
+  structures = min(structures, box(rotXZ(p - vec3(26., 1.15, 22), 1.2)));
+  structures = min(structures, barrel(p - vec3(36, 4.55, -13)));
+  structures = min(structures, min(box(rotXZ(p - vec3(47, 1.37, 2), -.3)), box(p - vec3(47.5, 1.6, .14))));
+  structures = min(structures, prison(p));
+  structures = min(structures, min(barrel(p - vec3(-48, 1.83, 14)), barrel(p - vec3(-48.8, 1.83, 13.2))));
+  structures = min(structures, min(cuboid(p - vec3(-7.5, 6.5, -17), vec3(2, 1, 2)), cuboid(p - vec3(-7.5, 6., -17), vec3(4, .3, 1))));
+  structures = min(structures, bigTube(p - vec3(9, 12.5, 2)));
+
+  structures = min(structures, cylinderVertical((p - vec3(2.3, 13.6, -1)), 2., 1.));
+  structures = min(structures, cylinderVertical((p - vec3(2.3, 13.7, -1)), .5, 4.));
+  structures = min(structures, cylinderVertical((p - vec3(2.3, 15.7, -1)), 1., .1));
+  structures = min(structures, cylinderVertical((p - vec3(2.3, 16.5, -1)), .75, .1));
 
   float objects = MAX_DIST;
   
-  if (iFloppyVisible) {
-    objects = min(objects, objectFloppy(p - vec3(-46.5, 1.01, -25)));
+  if (iFloppyVisible(0)) {
+    objects = min(objects, objectFloppy(p - vec3(18.33, 1.9562, 22.34)));
   }
-
-  float structures = portBridge(p);
+  if (iFloppyVisible(1)) {
+    objects = min(objects, objectFloppy(p - vec3(25.7, 1.9562, 22.5)));
+  }
+  if (iFloppyVisible(2)) {
+    objects = min(objects, objectFloppy(p - vec3(36, 5.361, -12.6)));
+  }
+  if (iFloppyVisible(3)) {
+    objects = min(objects, objectFloppy(p - vec3(47.1, 2.407, .14)));
+  }
+  if (iFloppyVisible(4)) {
+    objects = min(objects, objectFloppy(p - vec3(-41.5, 2.805, 2.1)));
+  }
+  if (iFloppyVisible(5)) {
+    objects = min(objects, objectFloppy(p - vec3(-47.8, 2.64, 13.6)));
+  }
+  if (iFloppyVisible(6)) {
+    objects = min(objects, objectFloppy(rotXZ(p - vec3(-11.3, 6.308, -16.1), .5)));
+  }
+  if (iFloppyVisible(7)) {
+    objects = min(objects, objectFloppy(p - vec3(7.7, 12.2, .44)));
+  }
+  if (iFloppyVisible(8)) {
+    objects = min(objects, objectFloppy(p - vec3(1.5, 15.805, -.95)));
+  }
 
   if (objects < structures) {
     return objects;
@@ -483,8 +583,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
             case SUBMATERIAL_METAL: color = vec3(1); break;  // extra bright
             case SUBMATERIAL_BRIGHT_RED: color = vec3(1, 0, 0); break;
             case SUBMATERIAL_DARK_RED: color = vec3(.5, 0, 0); break;
-            case SUBMATERIAL_BLACK_PURPLE: color = vec3(.2, .1, .2); break;
-            case SUBMATERIAL_YELLOW: color = vec3(1, .95, .8); break;
+            case SUBMATERIAL_YELLOW: color = vec3(1, 1, .8); break;
             case SUBMATERIAL_WOOD: color = .8 * vec3(.8, .6, .4); break;
             default:
               vec4 concrete = (texture(iNoise, hit.xy * .35) * hitNormal.z +

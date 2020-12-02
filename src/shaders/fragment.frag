@@ -302,7 +302,7 @@ float prison(vec3 ip) {
   // The bars on the windows:
   p.x = pModInterval(p.x, .3, -10., 10.);  // repeat along x
   p.z = abs(p.z);  // mirror on z axis
-  float bars = cylinder(p - vec3(0, 2, .5), .01, 1.);  // draw a single bar
+  float bars = cylinderVertical(p - vec3(0, 1, 2), .01, 2.);  // draw a single bar
   updateSubMaterial(SUBMATERIAL_METAL, bars);
   updateSubMaterial(SUBMATERIAL_WOOD, cornerBox);
 

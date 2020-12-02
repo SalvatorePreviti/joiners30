@@ -4,14 +4,12 @@
 
 #bio {
   position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
+  top: 8px;
+  left: 8px;
+  bottom: 8px;
+  right: 8px;
   display: none;
-  background-color: rgba(0, 0, 0, 0.9);
   pointer-events: none;
-  overflow: scroll;
   padding: 18px;
 }
 

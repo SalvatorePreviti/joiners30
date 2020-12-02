@@ -7,8 +7,7 @@ import { cameraPos, cameraEuler } from './camera'
 import { setText } from './text'
 import { debug_mode } from './debug'
 import { GAME_STATE } from './state/game-state'
-
-import bios_sp_html from './bios/sp.html'
+import { getBioHtml, preloadBiosImages } from './bios/bios'
 
 export const body = document.body
 
@@ -38,6 +37,8 @@ export let mouseYInversion = 1
 export let headBobEnabled = true
 
 export let mouseSensitivity = 0.5
+
+preloadBiosImages()
 
 /** The main element that holds the canvas and the main menu. */
 const mainElement = document.getElementById('M') as HTMLDivElement
@@ -196,9 +197,10 @@ export function updateBio() {
     bioHtmlVisible = bioVisible
     if (bioHtmlVisible) {
       body.classList.add('bio')
-      bioHtmlContentDiv.innerHTML = bios_sp_html
+      bioHtmlContentDiv.innerHTML = getBioHtml(GAME_STATE._bioIndex)
     } else {
       body.classList.remove('bio')
+      bioHtmlContentDiv.innerHTML = ''
     }
   }
 }

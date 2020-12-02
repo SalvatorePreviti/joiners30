@@ -13,10 +13,14 @@ export interface ViteConfig extends ViteUserConfig {
 }
 
 /** List of aliases available only during local server development mode */
-const devModeAliases = new Map<string, string>([['/src/debug', 'src/_debug/_debug.ts']])
+const devModeAliases = new Map<string, string>([
+  ['/src/debug', 'src/_debug/_debug.ts'],
+  ['/src/bios/bios-data/bios-data', 'src/bios/bios-data-debug/bios-data-debug.ts']
+])
 
 const devModeResolver = {
   fileToRequest(filePath: string, _root: string) {
+    console.log(filePath)
     const found = devModeAliases.get(filePath)
     return found && `/${found}`
   },

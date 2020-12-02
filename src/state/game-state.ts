@@ -49,6 +49,7 @@ function newFloppy(x: number, y: number, z: number, _lookAtDistance = 1.2) {
       this._visible = false
       ++GAME_STATE._foundCount
       GAME_STATE._bioIndex = GAME_STATE._floppies.indexOf(this)
+      setText('')
     }
   }
 }

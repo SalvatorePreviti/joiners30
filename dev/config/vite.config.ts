@@ -58,7 +58,7 @@ const viteConfig: ViteConfig = {
   esbuildTarget: 'es2019',
   enableRollupPluginVue: false,
   cssCodeSplit: true,
-  assetsInlineLimit: 32000,
+  assetsInlineLimit: 32000000,
 
   rollupInputOptions: {
     preserveEntrySignatures: false,

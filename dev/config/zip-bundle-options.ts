@@ -2,7 +2,7 @@ export type ZipCompressionImplementation = 'zlib' | 'zopfli'
 
 export const zipBundleOptions = {
   /** Choose your fighter - old school 'zlib' or the insane 'zopfli'? */
-  implementation: 'zopfli' as 'zopfli' | 'zlib',
+  implementation: 'zlib' as 'zopfli' | 'zlib',
 
   /** If you chose zopfli (you should), here you can pass some options. */
   zopfli: {

@@ -21,7 +21,7 @@
   },
   "main": "index.js",
   "bin": {
-    "ts-run": "./dev/ts-run.js"
+    "ts-run": "dev/ts-run.js"
   },
   "scripts": {
     "ts-run": "node ./dev/ts-run.js",
@@ -46,7 +46,7 @@
     "@rollup/plugin-commonjs": "^17.0.0",
     "@types/adm-zip": "^0.4.33",
     "@types/cheerio": "^0.22.22",
-    "@types/eslint": "^7.2.5",
+    "@types/eslint": "^7.2.6",
     "@types/html-minifier": "^4.0.0",
     "@types/node": "^14.14.10",
     "@typescript-eslint/eslint-plugin": "^4.9.0",

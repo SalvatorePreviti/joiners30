@@ -5,6 +5,8 @@ import { createServerPluginImportShader } from '../server/server-plugin-import-s
 
 import paths from './builder-paths'
 import { serverPluginImportHtml } from '../server/server-plugin-import-html'
+import fs from 'fs'
+import path from 'path'
 
 export interface ViteConfig extends ViteUserConfig {
   textExtensions: string[]
@@ -13,14 +15,15 @@ export interface ViteConfig extends ViteUserConfig {
 }
 
 /** List of aliases available only during local server development mode */
-const devModeAliases = new Map<string, string>([
-  ['/src/debug', 'src/_debug/_debug.ts'],
-  ['/src/bios/bios-data/bios-data', 'src/bios/bios-data-debug/bios-data-debug.ts']
-])
+const devModeAliases = new Map<string, string>([['/src/debug', 'src/_debug/_debug.ts']])
+
+if (!fs.existsSync(path.resolve(__dirname, 'src/bios/bios-data/bios-data.ts'))) {
+  devModeAliases.set('/src/bios/bios-data/bios-data', 'src/bios/bios-data-debug/bios-data-debug.ts')
+  console.log('bios data not found, using debug one')
+}
 
 const devModeResolver = {
   fileToRequest(filePath: string, _root: string) {
-    console.log(filePath)
     const found = devModeAliases.get(filePath)
     return found && `/${found}`
   },

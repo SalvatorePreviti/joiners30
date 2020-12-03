@@ -1,5 +1,5 @@
 import { min, DEG_TO_RAD } from './math/scalar'
-import { objectAssign } from './core/objects'
+import { objectAssign, objectKeys } from './core/objects'
 import { KEY_MAIN_MENU, KeyFunctions, KEY_ACTION } from './keyboard'
 import { vec3Set } from './math/vec3'
 import { vec2Set } from './math/vec2'
@@ -7,7 +7,8 @@ import { cameraPos, cameraEuler } from './camera'
 import { setText } from './text'
 import { debug_mode } from './debug'
 import { GAME_STATE } from './state/game-state'
-import { getBioHtml, preloadBiosImages } from './bios/bios'
+import { bios, getBio, preloadBiosImages } from './bios/bios'
+import { arrayFrom } from './core/arrays'
 
 export const body = document.body
 
@@ -49,6 +50,7 @@ const highQualityCheckbox = document.getElementById('Q') as HTMLInputElement
 const invertYCheckbox = document.getElementById('Y') as HTMLInputElement
 const mouseSensitivitySlider = document.getElementById('V') as HTMLInputElement
 const headBobCheckbox = document.getElementById('H') as HTMLInputElement
+const disksElement = document.getElementById('disks')
 
 export const saveGameButton = document.getElementById('S')
 
@@ -116,6 +118,7 @@ export const startOrResumeClick = (newGame = true) => {
     gameStarted = true
   }
   mainMenuVisible = false
+  loadBio(-1)
   body.classList.remove('N')
   canvasRequestPointerLock()
 }
@@ -128,7 +131,7 @@ newGameButton.onclick = () => startOrResumeClick()
 KeyFunctions[KEY_MAIN_MENU] = showMainMenu
 KeyFunctions[KEY_ACTION] = (repeat: boolean) => {
   if (!repeat) {
-    GAME_STATE._bioIndex = -1
+    GAME_STATE._bioId = -1
   }
 }
 
@@ -171,35 +174,97 @@ export const gl = canvasElement.getContext('webgl2', {
 /** Main framebuffer used for pregenerating the heightmap and to render the collision shader */
 export const glFrameBuffer: WebGLFramebuffer = gl.createFramebuffer()
 
-export let bioHtmlVisible: boolean | null = null
+export let bioHtmlVisibleId: number = -2
 
-let _foundHtmlCount: number = -2
+let _inGameFoundDisksCount: number = -1
 
 export function resetHtmlState() {
-  bioHtmlVisible = null
-  _foundHtmlCount = -2
+  bioHtmlVisibleId = null
+  _inGameFoundDisksCount = -2
 }
 
 export function updateBio() {
-  if (_foundHtmlCount !== GAME_STATE._foundCount) {
+  if (_inGameFoundDisksCount !== GAME_STATE._foundCount) {
     const floppiesCount = GAME_STATE._floppies.length
-    _foundHtmlCount = GAME_STATE._foundCount
-    if (_foundHtmlCount >= floppiesCount) {
+    _inGameFoundDisksCount = GAME_STATE._foundCount
+    if (_inGameFoundDisksCount >= floppiesCount) {
       foundTextElement.innerHTML =
         '<h2 style="text-align:center"><b>🏆</b><br/>Congratulations!<br/>You found all the joiners!</h2>'
     } else {
-      foundTextElement.innerHTML = `${_foundHtmlCount}/${floppiesCount}&nbsp;<b>💾</b>`
+      foundTextElement.innerHTML = `${_inGameFoundDisksCount}/${floppiesCount}&nbsp;<b>💾</b>`
     }
   }
-  const bioVisible = !mainMenuVisible && GAME_STATE._bioIndex >= 0
-  if (bioHtmlVisible !== bioVisible) {
-    bioHtmlVisible = bioVisible
-    if (bioHtmlVisible) {
-      body.classList.add('screen')
-      //bioHtmlContentDiv.innerHTML = getBioHtml(GAME_STATE._bioIndex)
-    } else {
-      body.classList.remove('screen')
-      //bioHtmlContentDiv.innerHTML = ''
+
+  if (!mainMenuVisible) {
+    const bioId = GAME_STATE._bioId
+    if (bioHtmlVisibleId !== bioId) {
+      bioHtmlVisibleId = bioId
+      bioCollected(bioId)
+      loadBio(bioId)
     }
   }
 }
+
+export function loadBio(id: number) {
+  const bio = getBio(id)
+  if (!bio) {
+    body.classList.remove('screen')
+    return
+  }
+
+  for (const key of objectKeys(bio)) {
+    const value = bio[key]
+    const element = document.getElementById(`bio-${key}`)
+    if (element) {
+      if (key === 'img') {
+        ;(element as HTMLImageElement).src = value
+      } else {
+        element.getElementsByTagName('i')[0].innerText = value
+      }
+    }
+  }
+  document.getElementById('screen2').scrollTop = 0
+  body.classList.add('screen')
+}
+
+const collectedBiosIdsSet = new Set<number>()
+
+const diskButtonElements: HTMLButtonElement[] = bios.map((_) => {
+  const button = document.createElement('button')
+  button.innerText = '💾'
+  button.disabled = true
+  button.title = '???'
+  disksElement.appendChild(button)
+  button.onclick = () => {
+    loadBio(parseInt(button.getAttribute('data-id') || '-1'))
+  }
+  return button
+})
+
+const LOCAL_STORAGE_BIOS_KEY = 'newjoiners30_collected_bios'
+
+function bioCollected(id: number) {
+  const bio = getBio(id)
+  if (bio && collectedBiosIdsSet.add(id)) {
+    const index = collectedBiosIdsSet.size - 1
+    const button = diskButtonElements[index]
+    if (button) {
+      button.className = 'collected'
+      button.disabled = false
+      button.setAttribute('data-id', `${id}`)
+      button.title = bio.name
+      localStorage.setItem(LOCAL_STORAGE_BIOS_KEY, JSON.stringify(arrayFrom(collectedBiosIdsSet)))
+    }
+  }
+}
+
+function loadCollectedBiosIdsFromLocalStorage() {
+  const data = localStorage.getItem(LOCAL_STORAGE_BIOS_KEY) || '[]'
+  try {
+    for (const id of JSON.parse(data)) {
+      bioCollected(id)
+    }
+  } catch (_) {}
+}
+
+loadCollectedBiosIdsFromLocalStorage()

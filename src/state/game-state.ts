@@ -4,7 +4,7 @@ import { setText } from '../text'
 import { KEY_ACTION, PressedKeys } from '../keyboard'
 import { vec2Set } from '../math/vec2'
 import { cos, DEG_TO_RAD, PI, sin } from '../math/scalar'
-import { bioHtmlVisible } from '../page'
+import { bioHtmlVisibleId } from '../page'
 import { gameTime } from '../time'
 import { arrayFrom, shuffleArray } from '../core/arrays'
 
@@ -18,7 +18,7 @@ interface GameObject {
 
 const GAME_STATE = {
   _gameEnded: false,
-  _bioIndex: -1,
+  _bioId: -1,
   _foundCount: 0,
   _floppies: [
     newFloppy(18.33, 1.9562, 22.34),
@@ -35,12 +35,12 @@ const GAME_STATE = {
 
 // Shuffle the bios all aroun the island
 shuffleArray(arrayFrom(GAME_STATE._floppies.keys())).forEach(
-  (value, index) => (GAME_STATE._floppies[index]._bioIdx = value)
+  (value, index) => (GAME_STATE._floppies[index]._bioId = value)
 )
 
-function newFloppy(x: number, y: number, z: number, _lookAtDistance = 1.2) {
+function newFloppy(x: number, y: number, z: number, _lookAtDistance = 1.5) {
   return {
-    _bioIdx: 0,
+    _bioId: 0,
     _location: { x, y, z },
     _visible: true,
     _lookAtDistance,
@@ -48,7 +48,7 @@ function newFloppy(x: number, y: number, z: number, _lookAtDistance = 1.2) {
     _onInteract() {
       this._visible = false
       ++GAME_STATE._foundCount
-      GAME_STATE._bioIndex = GAME_STATE._floppies.indexOf(this)
+      GAME_STATE._bioId = this._bioId
       setText('')
     }
   }
@@ -82,7 +82,7 @@ const endGame = () => {
 let _actionWasPressed = false
 
 const updateGameObjects = () => {
-  if (!bioHtmlVisible) {
+  if (bioHtmlVisibleId < 0) {
     if (GAME_STATE._foundCount >= GAME_STATE._floppies.length) {
       endGame()
     } else {

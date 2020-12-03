@@ -16,6 +16,9 @@
         <h3><b id="R">New Game</b></h3>
         <h3><b id="S" class="X">Save Game</b></h3>
         <h3><b id="L">Load Game</b></h3>
+        <div style="font-size: 0.8em; margin: 0.8em 0 1em 0; color: #efa">
+          Collected disks: <span id="disks"></span>
+        </div>
         <small>
           <label><input type="checkbox" id="Y" /> Invert Y </label>
           <label> <input type="checkbox" id="Q" checked /> High quality </label>
@@ -24,11 +27,14 @@
           <br />
           <br />
           Shift: run<br />
-          W,A,S,D/Arrows: move, strafe<br />
-          Mouse: look around<br />
+          W,A,S,D: move<br />
+          Mouse/Arrows: look around<br />
           E,Space: interact<br />
-          Esc,M: menu
+          Esc,X: main menu<br />
         </small>
+        <a href="https://github.com/SalvatorePreviti/joiners30"
+          >Source code: https://github.com/SalvatorePreviti/joiners30</a
+        >
       </div>
     </div>
     <div id="screen">
@@ -36,23 +42,24 @@
         <div id="screen2">
           <div id="bioc">
             <div id="biot">
-              <div class="k"><b>Name:</b> user name</div>
-              <div class="k"><b>Team:</b> team name</div>
-              <div class="k"><b>Position:</b> position</div>
+              <div class="k" id="bio-name"><b>Name:</b> <i></i></div>
+              <div class="k" id="bio-team"><b>Team:</b> <i></i></div>
+              <div class="k" id="bio-pos"><b>Position:</b> <i></i></div>
+              <div class="k" id="bio-from"><b>From:</b> <i></i></div>
               <b>Fun facts:</b>
               <div class="k">
                 <ul>
-                  <li>aaa</li>
-                  <li>bbb</li>
-                  <li>ccc</li>
+                  <li id="bio-fun1"><i></i></li>
+                  <li id="bio-fun2"><i></i></li>
+                  <li id="bio-fun3"><i></i></li>
                 </ul>
               </div>
               <div class="k">
                 <b>Dark secrets:</b>
                 <ul>
-                  <li>aaa</li>
-                  <li>bbb</li>
-                  <li>ccc</li>
+                  <li id="bio-dark1"><i></i></li>
+                  <li id="bio-dark2"><i></i></li>
+                  <li id="bio-dark3"><i></i></li>
                 </ul>
               </div>
               <br />
@@ -61,9 +68,7 @@
               > Press E or Space to continue... <b id="blink">&nbsp;</b><br /><br />
             </div>
             <div id="bioi">
-              <img
-                src="https://upload.wikimedia.org/wikipedia/en/thumb/3/3b/SpongeBob_SquarePants_character.svg/1200px-SpongeBob_SquarePants_character.svg.png"
-              />
+              <img id="bio-img" />
             </div>
           </div>
         </div>

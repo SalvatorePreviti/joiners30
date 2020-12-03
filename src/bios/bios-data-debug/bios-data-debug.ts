@@ -5,6 +5,7 @@ export const bios: Bio[] = [
     name: 'Hello World XXXX',
     team: 'TeamX',
     pos: 'my position',
+    from: 'somewhere',
     fun1: 'fun1!',
     fun2: 'fun2!',
     fun3: 'fun3!',

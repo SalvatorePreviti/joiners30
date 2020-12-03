@@ -1,5 +1,5 @@
 import { debug_mode } from './debug'
-import { mainMenuVisible } from './page'
+import { loadBio, mainMenuVisible } from './page'
 
 export const KEY_FORWARD = 1
 
@@ -9,15 +9,23 @@ export const KEY_STRAFE_LEFT = 3
 
 export const KEY_STRAFE_RIGHT = 4
 
-export const KEY_RUN = 5
+export const KEY_LOOK_UP = 5
 
-export const KEY_ACTION = 6
+export const KEY_LOOK_DOWN = 6
 
-export const KEY_MAIN_MENU = 8
+export const KEY_LOOK_LEFT = 7
 
-export const KEY_FLY_UP = 10
+export const KEY_LOOK_RIGHT = 8
 
-export const KEY_FLY_DOWN = 11
+export const KEY_RUN = 9
+
+export const KEY_ACTION = 10
+
+export const KEY_MAIN_MENU = 11
+
+export const KEY_FLY_UP = 12
+
+export const KEY_FLY_DOWN = 13
 
 /* List of pressed keys */
 export const PressedKeys: boolean[] = []
@@ -25,35 +33,37 @@ export const PressedKeys: boolean[] = []
 export const KeyFunctions: Record<number, (repeat?: boolean) => void> = {}
 
 const _keyMap: Record<string, number> = {
+  ArrowUp: KEY_LOOK_UP,
+  ArrowDown: KEY_LOOK_DOWN,
+  ArrowLeft: KEY_LOOK_LEFT,
+  ArrowRight: KEY_LOOK_RIGHT,
+
   w: KEY_FORWARD,
   W: KEY_FORWARD,
   z: KEY_FORWARD,
   Z: KEY_FORWARD,
-  ArrowUp: KEY_FORWARD,
 
   s: KEY_BACKWARD,
   S: KEY_BACKWARD,
-  ArrowDown: KEY_BACKWARD,
 
   a: KEY_STRAFE_LEFT,
   A: KEY_STRAFE_LEFT,
   q: KEY_STRAFE_LEFT,
   Q: KEY_STRAFE_LEFT,
-  ArrowLeft: KEY_STRAFE_LEFT,
 
   d: KEY_STRAFE_RIGHT,
   D: KEY_STRAFE_RIGHT,
-  ArrowRight: KEY_STRAFE_RIGHT,
 
   Shift: KEY_RUN,
 
   e: KEY_ACTION,
   E: KEY_ACTION,
+  Enter: KEY_ACTION,
   ' ': KEY_ACTION,
 
   Escape: KEY_MAIN_MENU,
-  M: KEY_MAIN_MENU,
-  m: KEY_MAIN_MENU
+  X: KEY_MAIN_MENU,
+  x: KEY_MAIN_MENU
 }
 
 if (debug_mode) {
@@ -69,10 +79,14 @@ if (debug_mode) {
 }
 
 const _setKeyPressed = (e: KeyboardEvent, value: boolean) => {
+  const key = e.key
   if (!e.keyCode || e.metaKey || !document.activeElement || mainMenuVisible) {
     PressedKeys.length = 0 // Clear pressed status to prevent key sticking when alt+tabbing or showing the menu
+    if ((mainMenuVisible && _keyMap[key] === KEY_MAIN_MENU) || _keyMap[key] === KEY_ACTION) {
+      loadBio(-1)
+    }
   } else {
-    const keyId = _keyMap[e.key] | 0
+    const keyId = _keyMap[key] | 0
     if (value && KeyFunctions[keyId]) {
       KeyFunctions[keyId](e.repeat)
     }

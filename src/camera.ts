@@ -6,7 +6,11 @@ import {
   KEY_STRAFE_RIGHT,
   KEY_FLY_UP,
   KEY_FLY_DOWN,
-  KEY_RUN
+  KEY_RUN,
+  KEY_LOOK_UP,
+  KEY_LOOK_DOWN,
+  KEY_LOOK_LEFT,
+  KEY_LOOK_RIGHT
 } from './keyboard'
 
 import {
@@ -37,9 +41,9 @@ import { GAME_STATE } from './state/game-state'
 import { gameTimeDelta, gameTime } from './time'
 import type { Mat3 } from './math/math-types'
 
-const CAMERA_SPEED_DEFAULT = 2.1
+const CAMERA_SPEED_DEFAULT = 3
 
-const CAMERA_SPEED_RUN = debug_mode ? 20 : 6.5
+const CAMERA_SPEED_RUN = debug_mode ? 7 : 7
 
 /** head bob value */
 export let headBob = 0
@@ -100,7 +104,7 @@ let timeMoving = 0
 export const updateCamera = () => {
   const speed = (PressedKeys[KEY_RUN] ? CAMERA_SPEED_RUN : CAMERA_SPEED_DEFAULT) * gameTimeDelta
 
-  if (!GAME_STATE._gameEnded && GAME_STATE._bioIndex < 0) {
+  if (!GAME_STATE._gameEnded && GAME_STATE._bioId < 0) {
     vec3Set(vec3Temp0, 0, 0, 0)
     if (PressedKeys[KEY_FORWARD]) {
       movementForward(1)
@@ -119,6 +123,29 @@ export const updateCamera = () => {
       headBob = headBobEnabled ? sin(timeMoving * 10) * 0.03 : 0
       vec3Add(cameraPos, vec3ScalarMultiply(vec3Normalize(vec3Temp0), speed))
     }
+
+    if (!GAME_STATE._gameEnded) {
+      const sensX = PressedKeys[KEY_RUN] ? 0.04 : 0.008
+      const sensY = sensX * 0.8
+      let lookX = 0
+      let lookY = 0
+      if (PressedKeys[KEY_LOOK_UP]) {
+        lookY -= sensY
+      }
+      if (PressedKeys[KEY_LOOK_DOWN]) {
+        lookY += sensY
+      }
+      if (PressedKeys[KEY_LOOK_LEFT]) {
+        lookX -= sensX
+      }
+      if (PressedKeys[KEY_LOOK_RIGHT]) {
+        lookX += sensX
+      }
+      if (lookX || lookY) {
+        rotateCamera(lookX, lookY)
+      }
+    }
+
     if (debug_mode) {
       if (PressedKeys[KEY_FLY_UP]) {
         cameraPos.y += speed
@@ -141,9 +168,21 @@ debug_updateCameraPosition(cameraPos)
 
 onmousemove = (e) => {
   if (document.pointerLockElement === canvasElement && !GAME_STATE._gameEnded) {
-    const sens = lerp(0.0004, 0.0031, mouseSensitivity)
+    if (
+      PressedKeys[KEY_LOOK_UP] ||
+      PressedKeys[KEY_LOOK_DOWN] ||
+      PressedKeys[KEY_LOOK_LEFT] ||
+      PressedKeys[KEY_LOOK_RIGHT]
+    ) {
+      return
+    }
 
-    cameraEuler.x = wrapAngleInRadians(cameraEuler.x - e.movementX * sens)
-    cameraEuler.y = clamp(cameraEuler.y + e.movementY * mouseYInversion * sens, -87 * DEG_TO_RAD, 87 * DEG_TO_RAD)
+    const sens = lerp(0.0004, 0.0031, mouseSensitivity)
+    rotateCamera(e.movementX * sens, e.movementY * sens)
   }
+}
+
+function rotateCamera(deltaX: number, deltaY: number) {
+  cameraEuler.x = wrapAngleInRadians(cameraEuler.x - deltaX)
+  cameraEuler.y = clamp(cameraEuler.y + deltaY * mouseYInversion, -87 * DEG_TO_RAD, 87 * DEG_TO_RAD)
 }

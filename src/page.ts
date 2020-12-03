@@ -202,6 +202,10 @@ export function updateBio() {
       bioCollected(bioId)
       loadBio(bioId)
     }
+  } else if (bioHtmlVisibleId !== -1) {
+    GAME_STATE._bioId = -1
+    bioHtmlVisibleId = -1
+    loadBio(-1)
   }
 }
 
@@ -268,3 +272,5 @@ function loadCollectedBiosIdsFromLocalStorage() {
 }
 
 loadCollectedBiosIdsFromLocalStorage()
+
+document.getElementById('floppy-icon').innerText = '💾'

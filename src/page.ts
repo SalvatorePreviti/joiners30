@@ -49,7 +49,6 @@ const highQualityCheckbox = document.getElementById('Q') as HTMLInputElement
 const invertYCheckbox = document.getElementById('Y') as HTMLInputElement
 const mouseSensitivitySlider = document.getElementById('V') as HTMLInputElement
 const headBobCheckbox = document.getElementById('H') as HTMLInputElement
-const bioHtmlContentDiv = document.getElementById('bioc') as HTMLDivElement
 
 export const saveGameButton = document.getElementById('S')
 
@@ -196,11 +195,11 @@ export function updateBio() {
   if (bioHtmlVisible !== bioVisible) {
     bioHtmlVisible = bioVisible
     if (bioHtmlVisible) {
-      body.classList.add('bio')
-      bioHtmlContentDiv.innerHTML = getBioHtml(GAME_STATE._bioIndex)
+      body.classList.add('screen')
+      //bioHtmlContentDiv.innerHTML = getBioHtml(GAME_STATE._bioIndex)
     } else {
-      body.classList.remove('bio')
-      bioHtmlContentDiv.innerHTML = ''
+      body.classList.remove('screen')
+      //bioHtmlContentDiv.innerHTML = ''
     }
   }
 }

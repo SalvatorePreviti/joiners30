@@ -39,7 +39,7 @@ import type { Mat3 } from './math/math-types'
 
 const CAMERA_SPEED_DEFAULT = 2.1
 
-const CAMERA_SPEED_RUN = debug_mode ? 6.5 : 6.5
+const CAMERA_SPEED_RUN = debug_mode ? 20 : 6.5
 
 /** head bob value */
 export let headBob = 0

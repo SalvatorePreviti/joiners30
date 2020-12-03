@@ -43,7 +43,7 @@ import type { Mat3 } from './math/math-types'
 
 const CAMERA_SPEED_DEFAULT = 3
 
-const CAMERA_SPEED_RUN = debug_mode ? 7 : 7
+const CAMERA_SPEED_RUN = debug_mode ? 20 : 7
 
 /** head bob value */
 export let headBob = 0
@@ -125,7 +125,7 @@ export const updateCamera = () => {
     }
 
     if (!GAME_STATE._gameEnded) {
-      const sensX = PressedKeys[KEY_RUN] ? 0.04 : 0.008
+      const sensX = PressedKeys[KEY_RUN] ? 0.016 : 0.008
       const sensY = sensX * 0.8
       let lookX = 0
       let lookY = 0

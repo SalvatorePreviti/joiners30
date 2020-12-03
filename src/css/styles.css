@@ -291,28 +291,32 @@ a:hover {
   box-shadow: #000 0 -1px 6px 1px, inset #060 0 -1px 8px, #0f0 0 3px 11px;
 }
 
-#disks button {
+.disks {
+  text-align: center;
+}
+
+.disks .button {
   display: inline-block;
   background: none;
   padding: 1px;
-  margin: 0 10px 0 0;
+  margin: 0 6px 0 6px;
   font-size: 1em;
   border: none;
-  opacity: 1;
   cursor: no-drop;
   position: relative;
   opacity: 0.9;
   transition: 0.2s opacity;
+  line-height: 0.6em;
 }
 
-#disks button.collected {
+.disks .button.collected {
   cursor: pointer;
-  text-shadow: 0px 0px 3px rgba(220, 255, 255, 0.5), -1px -1px 3px rgba(220, 255, 255, 0.5),
-    1px 1px 3px rgba(220, 255, 255, 0.5);
+  text-shadow: 0px 0px 3px rgba(220, 255, 200, 0.4), -1px -1px 3px rgba(220, 255, 200, 0.4),
+    1px 1px 3px rgba(220, 255, 200, 0.4);
   opacity: 0.8;
 }
 
-#disks button.collected:hover {
+.disks .button.collected:hover {
   opacity: 1;
   text-shadow: 0px 0px 3px rgba(220, 255, 255, 0.6), -1px -1px 3px rgba(220, 255, 255, 0.6),
     1px 1px 3px rgba(220, 255, 255, 0.6);

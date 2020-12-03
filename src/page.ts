@@ -91,14 +91,17 @@ export const showMainMenu = () => {
 document.onpointerlockchange = () => {
   // document.pointerLockElement is falsy if we've unlocked
   if (!document.pointerLockElement) {
-    if (!debug_mode) {
+    if (!debug_mode && !GAME_STATE._gameEnded) {
       showMainMenu()
     }
   }
 }
 
-const canvasRequestPointerLock = (e?: MouseEvent) =>
-  (!e || !e.button) && !mainMenuVisible && canvasElement.requestPointerLock()
+const canvasRequestPointerLock = (e?: MouseEvent) => {
+  if (!GAME_STATE._gameEnded && (!e || !e.button) && !mainMenuVisible) {
+    canvasElement.requestPointerLock()
+  }
+}
 
 export let gameStarted: Boolean
 
@@ -124,7 +127,7 @@ export const startOrResumeClick = (newGame = true) => {
 }
 
 handleResize()
-onresize = handleResize
+window.addEventListener('resize', handleResize)
 
 newGameButton.onclick = () => startOrResumeClick()
 
@@ -184,17 +187,6 @@ export function resetHtmlState() {
 }
 
 export function updateBio() {
-  if (_inGameFoundDisksCount !== GAME_STATE._foundCount) {
-    const floppiesCount = GAME_STATE._floppies.length
-    _inGameFoundDisksCount = GAME_STATE._foundCount
-    if (_inGameFoundDisksCount >= floppiesCount) {
-      foundTextElement.innerHTML =
-        '<h2 style="text-align:center"><b>🏆</b><br/>Congratulations!<br/>You found all the joiners!</h2>'
-    } else {
-      foundTextElement.innerHTML = `${_inGameFoundDisksCount}/${floppiesCount}&nbsp;<b>💾</b>`
-    }
-  }
-
   if (!mainMenuVisible) {
     const bioId = GAME_STATE._bioId
     if (bioHtmlVisibleId !== bioId) {
@@ -206,6 +198,28 @@ export function updateBio() {
     GAME_STATE._bioId = -1
     bioHtmlVisibleId = -1
     loadBio(-1)
+  }
+
+  if (_inGameFoundDisksCount !== GAME_STATE._foundCount) {
+    updateDisks()
+  }
+}
+
+function updateDisks() {
+  const floppiesCount = GAME_STATE._floppies.length
+  _inGameFoundDisksCount = GAME_STATE._foundCount
+  if (_inGameFoundDisksCount >= floppiesCount) {
+    foundTextElement.innerHTML = `<h2 style="text-align:center"><b>🏆</b><br/><br/>Congratulations!<br/>You found all the joiners!</h2><br/><div class="disks">${disksElement.innerHTML}</div>`
+    const buttons = foundTextElement.getElementsByClassName('button')
+    for (let i = 0; i < buttons.length; ++i) {
+      const button = buttons[i] as HTMLSpanElement
+      button.onclick = () => {
+        loadBio(parseInt(button.getAttribute('data-id') || '-1'))
+      }
+    }
+    document.exitPointerLock()
+  } else {
+    foundTextElement.innerHTML = `${_inGameFoundDisksCount}/${floppiesCount}&nbsp;<b>💾</b>`
   }
 }
 
@@ -233,11 +247,11 @@ export function loadBio(id: number) {
 
 const collectedBiosIdsSet = new Set<number>()
 
-const diskButtonElements: HTMLButtonElement[] = bios.map((_) => {
-  const button = document.createElement('button')
+const diskButtonElements: HTMLSpanElement[] = bios.map((_) => {
+  const button = document.createElement('span')
   button.innerText = '💾'
-  button.disabled = true
   button.title = '???'
+  button.className = 'button'
   disksElement.appendChild(button)
   button.onclick = () => {
     loadBio(parseInt(button.getAttribute('data-id') || '-1'))
@@ -253,8 +267,7 @@ function bioCollected(id: number) {
     const index = collectedBiosIdsSet.size - 1
     const button = diskButtonElements[index]
     if (button) {
-      button.className = 'collected'
-      button.disabled = false
+      button.className = 'button collected'
       button.setAttribute('data-id', `${id}`)
       button.title = bio.name
       localStorage.setItem(LOCAL_STORAGE_BIOS_KEY, JSON.stringify(arrayFrom(collectedBiosIdsSet)))

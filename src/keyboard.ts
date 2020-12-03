@@ -1,5 +1,6 @@
 import { debug_mode } from './debug'
 import { loadBio, mainMenuVisible } from './page'
+import { GAME_STATE } from './state/game-state'
 
 export const KEY_FORWARD = 1
 
@@ -31,6 +32,20 @@ export const KEY_FLY_DOWN = 13
 export const PressedKeys: boolean[] = []
 
 export const KeyFunctions: Record<number, (repeat?: boolean) => void> = {}
+
+const _keyCodeMap = new Map<number, string>([
+  [81, 'q'],
+  [87, 'w'],
+  [65, 'a'],
+  [83, 's'],
+  [68, 'd'],
+  [88, 'x'],
+  [38, 'ArrowUp'],
+  [40, 'ArrowDown'],
+  [37, 'ArrowLeft'],
+  [39, 'ArrowRight'],
+  [16, 'Shift']
+])
 
 const _keyMap: Record<string, number> = {
   ArrowUp: KEY_LOOK_UP,
@@ -79,20 +94,35 @@ if (debug_mode) {
 }
 
 const _setKeyPressed = (e: KeyboardEvent, value: boolean) => {
-  const key = e.key
-  if (!e.keyCode || e.metaKey || !document.activeElement || mainMenuVisible) {
+  const keyId = _keyMap[_keyCodeMap.get(e.keyCode)] || _keyMap[e.key]
+
+  if (!e.repeat && (GAME_STATE._gameEnded || mainMenuVisible) && (keyId === KEY_MAIN_MENU || keyId === KEY_ACTION)) {
+    loadBio(-1)
+  }
+
+  if (e.metaKey || !document.activeElement || mainMenuVisible) {
     PressedKeys.length = 0 // Clear pressed status to prevent key sticking when alt+tabbing or showing the menu
-    if ((mainMenuVisible && _keyMap[key] === KEY_MAIN_MENU) || _keyMap[key] === KEY_ACTION) {
-      loadBio(-1)
-    }
-  } else {
-    const keyId = _keyMap[key] | 0
+    return undefined
+  }
+
+  if (keyId) {
     if (value && KeyFunctions[keyId]) {
       KeyFunctions[keyId](e.repeat)
     }
     PressedKeys[keyId] = value
+
+    if (!GAME_STATE._gameEnded) {
+      e.cancelBubble = true
+      if (e.preventDefault) {
+        e.preventDefault()
+      }
+      return false
+    }
   }
+
+  return undefined
 }
 
-onkeydown = (ev) => _setKeyPressed(ev, true)
-onkeyup = (ev) => _setKeyPressed(ev, false)
+document.addEventListener('keydown', (e: KeyboardEvent) => _setKeyPressed(e, true), false)
+document.addEventListener('keyup', (e: KeyboardEvent) => _setKeyPressed(e, false), false)
+document.addEventListener('keypress', () => {}, false)

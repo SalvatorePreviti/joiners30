@@ -11,7 +11,7 @@ import {
   GL_TEXTURE2,
   GL_NEAREST
 } from './gl/gl-constants'
-import { gl, glFrameBuffer } from './page'
+import { gl, glFrameBuffer } from './page-elements'
 
 export const PRERENDERED_TEXTURE_SIZE = 256
 

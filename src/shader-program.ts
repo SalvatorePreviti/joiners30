@@ -14,9 +14,9 @@ import { cameraPos, cameraDir, cameraMat3, headBob } from './camera'
 import { sin, cos } from './math/scalar'
 import { vec3Normalize, vec3Temp0, vec3Set } from './math/vec3'
 import { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER } from './gl/gl-constants'
-import { gl } from './page'
+import { gl } from './page-elements'
 import { gameTime } from './time'
-import { GAME_STATE } from './state/game-state'
+import { GAME_STATE } from './game-state'
 
 export const loadShaderFunction = (mainFunction: string) => {
   debug_time(`${loadShaderFunction.name} ${mainFunction}`)

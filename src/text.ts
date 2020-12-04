@@ -1,4 +1,4 @@
-import { gameTextElement } from './page'
+import { gameTextElement } from './page-elements'
 import { gameTimeDelta } from './time'
 
 interface Text {

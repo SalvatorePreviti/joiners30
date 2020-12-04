@@ -7,7 +7,7 @@ import {
   GL_TEXTURE_WRAP_S,
   GL_REPEAT
 } from './gl-constants'
-import { gl } from '../page'
+import { gl } from '../page-elements'
 
 export const glSetTextureSampling = (wrap: number = GL_REPEAT, minFilter = GL_LINEAR, magFilter = minFilter) => {
   gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap)

@@ -1,7 +1,7 @@
 import { bios } from './bios-data/bios-data'
 
 export interface Bio {
-  _loaded?: boolean
+  id: number
   name: string
   team: string
   pos: string
@@ -15,18 +15,6 @@ export interface Bio {
   img: string
 }
 
-function preloadBiosImages() {
-  for (let i = 0; i < bios.length; i++) {
-    const img = new Image()
-    const url = bios[i].img
-    if (!url.startsWith('data')) {
-      img.src = url
-      img.onload = () => (bios[i]._loaded = true)
-      preloadBiosImages[`_${i}`] = img
-    }
-  }
-}
+const getBio = (index: number) => (index >= 0 ? bios[index % bios.length] : undefined)
 
-const getBio = (index: number) => (index < 0 ? undefined : bios[index % bios.length])
-
-export { bios, getBio, preloadBiosImages }
+export { bios, getBio }

@@ -1,22 +1,25 @@
-import { min, DEG_TO_RAD } from './math/scalar'
+import { min } from './math/scalar'
 import { objectAssign, objectKeys } from './core/objects'
-import { KEY_MAIN_MENU, KeyFunctions, KEY_ACTION } from './keyboard'
-import { vec3Set } from './math/vec3'
-import { vec2Set } from './math/vec2'
-import { cameraPos, cameraEuler } from './camera'
+import { setCameraToStartPosition } from './camera'
 import { setText } from './text'
 import { debug_mode } from './debug'
-import { GAME_STATE } from './state/game-state'
-import { bios, getBio, preloadBiosImages } from './bios/bios'
+import { GAME_STATE } from './game-state'
+import { bios, getBio } from './bios/bios'
 import { arrayFrom } from './core/arrays'
-
-export const body = document.body
-
-export const canvasElement = document.getElementById('C') as HTMLCanvasElement
-
-export const gameTextElement = document.getElementById('T') as HTMLDivElement
-
-export const foundTextElement = document.getElementById('found-text') as HTMLDivElement
+import {
+  mainElement,
+  canvasElement,
+  highQualityCheckbox,
+  body,
+  saveGameButton,
+  newGameButton,
+  gameTextElement,
+  invertYCheckbox,
+  headBobCheckbox,
+  mouseSensitivitySlider,
+  foundTextElement,
+  disksElement
+} from './page-elements'
 
 /** Total horizontal and vertical padding to apply to the main element */
 const MAIN_ELEMENT_PADDING = 30
@@ -39,25 +42,18 @@ export let headBobEnabled = true
 
 export let mouseSensitivity = 0.5
 
-preloadBiosImages()
+export let bioHtmlVisibleId: number = -2
 
-/** The main element that holds the canvas and the main menu. */
-const mainElement = document.getElementById('M') as HTMLDivElement
+export let gameStarted: Boolean
 
-const newGameButton = document.getElementById('R') as HTMLDivElement
+const _collectedBiosIdsSet = new Set<number>()
 
-const highQualityCheckbox = document.getElementById('Q') as HTMLInputElement
-const invertYCheckbox = document.getElementById('Y') as HTMLInputElement
-const mouseSensitivitySlider = document.getElementById('V') as HTMLInputElement
-const headBobCheckbox = document.getElementById('H') as HTMLInputElement
-const disksElement = document.getElementById('disks')
+const _diskButtonElements: HTMLSpanElement[] = []
 
-export const saveGameButton = document.getElementById('S')
-
-export const loadGameButton = document.getElementById('L')
+const LOCAL_STORAGE_BIOS_KEY = 'newjoiners30_collected'
 
 /** Handle resize event to update canvas size. */
-const handleResize = () => {
+export const handleResize = () => {
   let cw = min(MAIN_ELEMENT_MAX_WIDTH, innerWidth - MAIN_ELEMENT_PADDING)
   let ch = innerHeight - MAIN_ELEMENT_PADDING
   if (MAIN_ELEMENT_ASPECT_RATIO >= cw / ch) {
@@ -83,18 +79,12 @@ const handleResize = () => {
 }
 
 export const showMainMenu = () => {
-  mainMenuVisible = true
-  body.classList.add('N')
-  document.exitPointerLock()
-}
-
-document.onpointerlockchange = () => {
-  // document.pointerLockElement is falsy if we've unlocked
-  if (!document.pointerLockElement) {
-    if (!debug_mode && !GAME_STATE._gameEnded) {
-      showMainMenu()
-    }
+  if (!mainMenuVisible) {
+    mainMenuVisible = true
+    body.classList.add('N')
+    showBio(-1)
   }
+  document.exitPointerLock()
 }
 
 const canvasRequestPointerLock = (e?: MouseEvent) => {
@@ -103,132 +93,62 @@ const canvasRequestPointerLock = (e?: MouseEvent) => {
   }
 }
 
-export let gameStarted: Boolean
-
 export const startOrResumeClick = (newGame = true) => {
   if (!gameStarted) {
     saveGameButton.className = ''
     if (newGame) {
-      resetHtmlState()
+      showBio(-1)
       setText('Find all the floppy disks!', 2)
+      updateDisks()
     }
     //set camera pos
     newGameButton.innerText = 'Resume Game'
-    //start positions:
-    vec3Set(cameraPos, 20, 8, 52)
-    vec2Set(cameraEuler, 178.4 * DEG_TO_RAD, 0)
+    setCameraToStartPosition()
 
     gameStarted = true
   }
   mainMenuVisible = false
-  loadBio(-1)
+  showBio(-1)
   body.classList.remove('N')
   canvasRequestPointerLock()
 }
 
-handleResize()
-window.addEventListener('resize', handleResize)
-
-newGameButton.onclick = () => startOrResumeClick()
-
-KeyFunctions[KEY_MAIN_MENU] = showMainMenu
-KeyFunctions[KEY_ACTION] = (repeat: boolean) => {
-  if (!repeat) {
-    GAME_STATE._bioId = -1
-  }
-}
-
-canvasElement.onmousedown = canvasRequestPointerLock
-gameTextElement.onmousedown = canvasRequestPointerLock
-
-highQualityCheckbox.onchange = handleResize
-
-invertYCheckbox.onchange = () => {
-  mouseYInversion = invertYCheckbox.checked ? -1 : 1
-}
-
-headBobCheckbox.onchange = () => {
-  headBobEnabled = headBobCheckbox.checked
-}
-
-mouseSensitivitySlider.onchange = () => {
-  mouseSensitivity = parseInt(mouseSensitivitySlider.value) / 100
-}
-
-export const gl = canvasElement.getContext('webgl2', {
-  /** Boolean that indicates if the canvas contains an alpha buffer. */
-  alpha: false,
-  /** Boolean that hints the user agent to reduce the latency by desynchronizing the canvas paint cycle from the event loop */
-  desynchronized: true,
-  /** Boolean that indicates whether or not to perform anti-aliasing. */
-  antialias: false,
-  /** Boolean that indicates that the drawing buffer has a depth buffer of at least 16 bits. */
-  depth: false,
-  /** Boolean that indicates if a context will be created if the system performance is low or if no hardware GPU is available. */
-  failIfMajorPerformanceCaveat: false,
-  /** A hint to the user agent indicating what configuration of GPU is suitable for the WebGL context. */
-  powerPreference: 'high-performance',
-  /** If the value is true the buffers will not be cleared and will preserve their values until cleared or overwritten. */
-  preserveDrawingBuffer: false,
-  /** Boolean that indicates that the drawing buffer has a stencil buffer of at least 8 bits. */
-  stencil: false
-})
-
-/** Main framebuffer used for pregenerating the heightmap and to render the collision shader */
-export const glFrameBuffer: WebGLFramebuffer = gl.createFramebuffer()
-
-export let bioHtmlVisibleId: number = -2
-
-let _inGameFoundDisksCount: number = -1
-
-export function resetHtmlState() {
-  bioHtmlVisibleId = null
-  _inGameFoundDisksCount = -2
-}
-
-export function updateBio() {
-  if (!mainMenuVisible) {
-    const bioId = GAME_STATE._bioId
-    if (bioHtmlVisibleId !== bioId) {
-      bioHtmlVisibleId = bioId
-      bioCollected(bioId)
-      loadBio(bioId)
-    }
-  } else if (bioHtmlVisibleId !== -1) {
-    GAME_STATE._bioId = -1
-    bioHtmlVisibleId = -1
-    loadBio(-1)
-  }
-
-  if (_inGameFoundDisksCount !== GAME_STATE._foundCount) {
-    updateDisks()
-  }
-}
-
-function updateDisks() {
-  const floppiesCount = GAME_STATE._floppies.length
-  _inGameFoundDisksCount = GAME_STATE._foundCount
-  if (_inGameFoundDisksCount >= floppiesCount) {
-    foundTextElement.innerHTML = `<h2 style="text-align:center"><b>🏆</b><br/><br/>Congratulations!<br/>You found all the joiners!</h2><br/><div class="disks">${disksElement.innerHTML}</div>`
+export function updateDisks() {
+  if (GAME_STATE._gameEnded) {
+    foundTextElement.innerHTML = `<div class="won"><h2 style="text-align:center"><b>🏆</b><br/><br/>Congratulations!<br/>You found all the joiners!</h2><br/><div class="disks">${disksElement.innerHTML}</div></div>`
     const buttons = foundTextElement.getElementsByClassName('button')
     for (let i = 0; i < buttons.length; ++i) {
       const button = buttons[i] as HTMLSpanElement
       button.onclick = () => {
-        loadBio(parseInt(button.getAttribute('data-id') || '-1'))
+        showBio(parseInt(button.getAttribute('data-id')))
       }
     }
     document.exitPointerLock()
   } else {
-    foundTextElement.innerHTML = `${_inGameFoundDisksCount}/${floppiesCount}&nbsp;<b>💾</b>`
+    const floppiesCount = GAME_STATE._floppies.length
+    foundTextElement.innerHTML = `${GAME_STATE._foundCount}/${floppiesCount}&nbsp;<b>💾</b>`
   }
 }
 
-export function loadBio(id: number) {
+export function showBio(id: number) {
+  if (bioHtmlVisibleId === id) {
+    return
+  }
+
+  bioHtmlVisibleId = id
+
   const bio = getBio(id)
   if (!bio) {
     body.classList.remove('screen')
     return
   }
+
+  setText('')
+  bioCollected(id)
+
+  localStorage.setItem(LOCAL_STORAGE_BIOS_KEY, JSON.stringify(arrayFrom(_collectedBiosIdsSet)))
+
+  updateDisks()
 
   for (const key of objectKeys(bio)) {
     const value = bio[key]
@@ -236,6 +156,7 @@ export function loadBio(id: number) {
     if (element) {
       if (key === 'img') {
         ;(element as HTMLImageElement).src = value
+        ;(element as HTMLImageElement).alt = bio.name
       } else {
         element.getElementsByTagName('i')[0].innerText = value
       }
@@ -245,32 +166,16 @@ export function loadBio(id: number) {
   body.classList.add('screen')
 }
 
-const collectedBiosIdsSet = new Set<number>()
-
-const diskButtonElements: HTMLSpanElement[] = bios.map((_) => {
-  const button = document.createElement('span')
-  button.innerText = '💾'
-  button.title = '???'
-  button.className = 'button'
-  disksElement.appendChild(button)
-  button.onclick = () => {
-    loadBio(parseInt(button.getAttribute('data-id') || '-1'))
-  }
-  return button
-})
-
-const LOCAL_STORAGE_BIOS_KEY = 'newjoiners30_collected_bios'
-
 function bioCollected(id: number) {
   const bio = getBio(id)
-  if (bio && collectedBiosIdsSet.add(id)) {
-    const index = collectedBiosIdsSet.size - 1
-    const button = diskButtonElements[index]
+  if (bio && !_collectedBiosIdsSet.has(id)) {
+    const index = _collectedBiosIdsSet.size
+    const button = _diskButtonElements[index]
     if (button) {
       button.className = 'button collected'
-      button.setAttribute('data-id', `${id}`)
+      button.setAttribute('data-id', `${bio.id}`)
       button.title = bio.name
-      localStorage.setItem(LOCAL_STORAGE_BIOS_KEY, JSON.stringify(arrayFrom(collectedBiosIdsSet)))
+      _collectedBiosIdsSet.add(id)
     }
   }
 }
@@ -284,6 +189,62 @@ function loadCollectedBiosIdsFromLocalStorage() {
   } catch (_) {}
 }
 
-loadCollectedBiosIdsFromLocalStorage()
+export function initPage() {
+  for (let i = 0; i < bios.length; ++i) {
+    const button = document.createElement('span')
+    button.innerText = '💾'
+    button.title = '???'
+    button.className = 'button'
+    disksElement.appendChild(button)
+    button.onclick = () => {
+      showBio(parseInt(button.getAttribute('data-id')))
+    }
+    _diskButtonElements.push(button)
+  }
 
-document.getElementById('floppy-icon').innerText = '💾'
+  loadCollectedBiosIdsFromLocalStorage()
+
+  handleResize()
+
+  window.addEventListener('resize', handleResize)
+
+  document.onpointerlockchange = () => {
+    // document.pointerLockElement is falsy if we've unlocked
+    if (!document.pointerLockElement) {
+      if (!debug_mode && !GAME_STATE._gameEnded) {
+        showMainMenu()
+      }
+    }
+  }
+
+  newGameButton.onclick = () => startOrResumeClick()
+
+  canvasElement.onmousedown = canvasRequestPointerLock
+  gameTextElement.onmousedown = canvasRequestPointerLock
+
+  highQualityCheckbox.onchange = handleResize
+
+  invertYCheckbox.onchange = () => {
+    mouseYInversion = invertYCheckbox.checked ? -1 : 1
+  }
+
+  headBobCheckbox.onchange = () => {
+    headBobEnabled = headBobCheckbox.checked
+  }
+
+  mouseSensitivitySlider.onchange = () => {
+    mouseSensitivity = parseInt(mouseSensitivitySlider.value) / 100
+  }
+
+  document.getElementById('screen').addEventListener(
+    'click',
+    () => {
+      if (mainMenuVisible) {
+        showBio(-1)
+      } else {
+        canvasRequestPointerLock()
+      }
+    },
+    false
+  )
+}

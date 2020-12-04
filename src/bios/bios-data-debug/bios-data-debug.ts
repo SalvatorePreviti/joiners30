@@ -2,6 +2,7 @@ import type { Bio } from '../bios'
 
 export const bios: Bio[] = [
   {
+    id: 0,
     name: 'Hello World XXXX',
     team: 'TeamX',
     pos: 'my position',

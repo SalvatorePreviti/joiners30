@@ -1,19 +1,24 @@
 import './css/styles.css'
-import { mainMenuVisible, renderHeight, renderWidth, gl, showMainMenu, glFrameBuffer, updateBio } from './page'
+import { showMainMenu, mainMenuVisible, renderWidth, renderHeight, initPage, bioHtmlVisibleId } from './page'
+import { gl, glFrameBuffer } from './page-elements'
 import { debug_beginFrame, debug_endFrame, debug_trycatch_wrap, debug_log, debug_updateCameraPosition } from './debug'
 
 import { updateCamera, cameraPos } from './camera'
 import { buildHeightmapTexture } from './texture-heightmap'
 import { buildNoiseTexture } from './texture-noise'
-import { updateAnimations } from './state/animations'
-import { updateGameObjects, GAME_STATE } from './state/game-state'
+import { GAME_STATE } from './game-state'
+import { updateGameObjects } from './game-state-update'
 import { updateText } from './text'
 import { loadMainShader, mainShader, prerenderedShader } from './shader-program'
 import { updateCollider, initCollider } from './collider'
 import { initPrerenderedTexture, PRERENDERED_TEXTURE_SIZE } from './texture-prerendered'
-import './save-load'
+import { initSaveLoad } from './save-load'
 import { GL_TRIANGLES, GL_FRAMEBUFFER } from './gl/gl-constants'
 import { updateTime, gameTime } from './time'
+import { initKeyboard } from './keyboard'
+
+initPage()
+initSaveLoad()
 
 setTimeout(() => {
   buildNoiseTexture()
@@ -22,6 +27,7 @@ setTimeout(() => {
   initCollider()
   loadMainShader()
   showMainMenu()
+  initKeyboard()
 
   const animationFrame = debug_trycatch_wrap(
     (browserTimeInMilliseconds: number) => {
@@ -37,11 +43,12 @@ setTimeout(() => {
       updateCamera()
 
       if (!mainMenuVisible) {
-        if (!GAME_STATE._gameEnded && GAME_STATE._bioId < 0) {
+        if (!GAME_STATE._gameEnded && bioHtmlVisibleId < 0) {
           updateCollider()
         }
-        updateAnimations()
+
         updateGameObjects()
+
         updateText()
       }
 
@@ -60,8 +67,6 @@ setTimeout(() => {
       mainShader(renderWidth, renderHeight)
 
       gl.drawArrays(GL_TRIANGLES, 0, 3)
-
-      updateBio()
 
       debug_endFrame(gameTime)
     },

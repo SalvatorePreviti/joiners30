@@ -145,7 +145,6 @@ a:hover {
   align-items: center;
   justify-content: center;
   text-align: left;
-  pointer-events: none;
   background: rgba(0, 0, 0, 0.7);
   overflow: hidden;
   opacity: 0;
@@ -304,20 +303,20 @@ a:hover {
   border: none;
   cursor: no-drop;
   position: relative;
-  opacity: 0.9;
+  opacity: 0.7;
   transition: 0.2s opacity;
   line-height: 0.6em;
+  text-shadow: none;
+  filter: brightness(0.4) blur(1px);
 }
 
 .disks .button.collected {
   cursor: pointer;
-  text-shadow: 0px 0px 3px rgba(220, 255, 200, 0.4), -1px -1px 3px rgba(220, 255, 200, 0.4),
-    1px 1px 3px rgba(220, 255, 200, 0.4);
-  opacity: 0.8;
+  opacity: 1;
+  text-shadow: 0px 0px 8px #000, -1px -1px 3px #000, 1px 1px 3px #000;
+  filter: none;
 }
 
 .disks .button.collected:hover {
   opacity: 1;
-  text-shadow: 0px 0px 3px rgba(220, 255, 255, 0.6), -1px -1px 3px rgba(220, 255, 255, 0.6),
-    1px 1px 3px rgba(220, 255, 255, 0.6);
 }

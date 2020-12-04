@@ -12,7 +12,7 @@ import { debug_collisionBufferCanvasPrepare } from './debug'
 import { PI, cos, sin, abs, unpackFloatBytes4, max } from './math/scalar'
 import { cameraPos } from './camera'
 import { vec3Length } from './math/vec3'
-import { gl } from './page'
+import { gl } from './page-elements'
 
 const CAMERA_MAX_DISTANCE_FROM_CENTER = 100
 

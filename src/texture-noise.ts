@@ -11,7 +11,7 @@ import {
   GL_LINEAR
 } from './gl/gl-constants'
 import { glSetTextureSampling } from './gl/gl-utils'
-import { gl } from './page'
+import { gl } from './page-elements'
 
 const NOISE_TEXTURE_SIZE = 512
 

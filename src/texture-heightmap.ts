@@ -14,7 +14,7 @@ import {
   GL_LINEAR
 } from './gl/gl-constants'
 import { loadShaderFunction } from './shader-program'
-import { gl, glFrameBuffer } from './page'
+import { gl, glFrameBuffer } from './page-elements'
 
 export const HEIGHTMAP_TETURE_SIZE = 4096
 

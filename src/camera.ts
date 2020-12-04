@@ -11,7 +11,7 @@ import {
   KEY_LOOK_DOWN,
   KEY_LOOK_LEFT,
   KEY_LOOK_RIGHT
-} from './keyboard'
+} from './keyboard-state'
 
 import {
   debug_mode,
@@ -19,8 +19,9 @@ import {
   debug_updateCameraDirection,
   debug_updateCameraEulerAngles
 } from './debug'
-import { canvasElement, mouseYInversion, headBobEnabled, mouseSensitivity } from './page'
-import { cos, sin, wrapAngleInRadians, clamp, DEG_TO_RAD, lerp } from './math/scalar'
+import { mouseYInversion, headBobEnabled, mouseSensitivity, bioHtmlVisibleId } from './page'
+import { canvasElement } from './page-elements'
+import { cos, sin, wrapAngleInRadians, clamp, DEG_TO_RAD, lerp, PI } from './math/scalar'
 import {
   vec3Temp0,
   vec3Add,
@@ -34,11 +35,10 @@ import {
   vec3Temp1,
   Vec3
 } from './math/vec3'
-import { Vec2, vec2New } from './math/vec2'
+import { Vec2, vec2New, vec2Set } from './math/vec2'
 import { typedArraySet } from './core/arrays'
-import { RUMBLING } from './state/animations'
-import { GAME_STATE } from './state/game-state'
-import { gameTimeDelta, gameTime } from './time'
+import { GAME_STATE } from './game-state'
+import { gameTime, gameTimeDelta } from './time'
 import type { Mat3 } from './math/math-types'
 
 const CAMERA_SPEED_DEFAULT = 3
@@ -71,11 +71,7 @@ export const cameraMoveDown = (amount: number) => {
 }
 
 const updateCameraDirFromEulerAngles = () => {
-  let { x: yaw, y: pitch } = cameraEuler
-  if (RUMBLING) {
-    yaw += sin(gameTime * 100) * 0.005
-    pitch += sin(gameTime * 200) * 0.005
-  }
+  const { x: yaw, y: pitch } = cameraEuler
 
   const sinYaw = sin(yaw)
   const cosYaw = cos(yaw)
@@ -104,7 +100,12 @@ let timeMoving = 0
 export const updateCamera = () => {
   const speed = (PressedKeys[KEY_RUN] ? CAMERA_SPEED_RUN : CAMERA_SPEED_DEFAULT) * gameTimeDelta
 
-  if (!GAME_STATE._gameEnded && GAME_STATE._bioId < 0) {
+  if (GAME_STATE._gameEnded) {
+    const t = gameTime * 0.2
+    const s = sin(gameTime * 0.4) * 9
+    vec3Set(cameraPos, sin(t) * 80 + s, 38, cos(t) * 40 + s)
+    vec2Set(cameraEuler, t + PI, 23 * DEG_TO_RAD + cos(gameTime * 0.5) * 0.05)
+  } else if (bioHtmlVisibleId < 0) {
     vec3Set(vec3Temp0, 0, 0, 0)
     if (PressedKeys[KEY_FORWARD]) {
       movementForward(1)
@@ -185,4 +186,10 @@ onmousemove = (e) => {
 function rotateCamera(deltaX: number, deltaY: number) {
   cameraEuler.x = wrapAngleInRadians(cameraEuler.x - deltaX)
   cameraEuler.y = clamp(cameraEuler.y + deltaY * mouseYInversion, -87 * DEG_TO_RAD, 87 * DEG_TO_RAD)
+}
+
+export function setCameraToStartPosition() {
+  //start positions:
+  vec3Set(cameraPos, 20, 8, 52)
+  vec2Set(cameraEuler, 178.4 * DEG_TO_RAD, 0)
 }
